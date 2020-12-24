@@ -78,9 +78,7 @@ namespace QuantConnect.Lean.Engine.DataFeeds
         {
             _date = date;
             _config = config;
-            _shouldCacheDataPoints = !_config.IsCustomData && _config.Resolution >= Resolution.Hour
-                && _config.Type != typeof(FineFundamental) && _config.Type != typeof(CoarseFundamental)
-                && !DataCacheProvider.IsDataEphemeral;
+            _shouldCacheDataPoints = false;
 
             // we know these type implement the streamReader interface lets avoid dynamic reflection call to figure it out
             if (_config.Type == typeof(TradeBar) || _config.Type == typeof(QuoteBar) || _config.Type == typeof(Tick))
