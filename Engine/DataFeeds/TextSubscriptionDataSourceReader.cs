@@ -40,12 +40,16 @@ namespace QuantConnect.Lean.Engine.DataFeeds
         private BaseData _factory;
         private bool _shouldCacheDataPoints;
         private static readonly MemoryCache BaseDataSourceCache = new MemoryCache("BaseDataSourceCache",
-            // Cache can use up to 70% of the installed physical memory
-            new NameValueCollection { { "physicalMemoryLimitPercentage", "70" } });
+            new NameValueCollection
+            {
+                { "CacheMemoryLimitMegabytes", "200" },
+                { "PhysicalMemoryLimitPercentage", "10" },
+                { "PollingInterval", TimeSpan.FromMilliseconds(1000).ToString() }
+            });
         private static readonly CacheItemPolicy CachePolicy = new CacheItemPolicy
         {
             // Cache entry should be evicted if it has not been accessed in given span of time:
-            SlidingExpiration = TimeSpan.FromMinutes(5)
+            SlidingExpiration = TimeSpan.FromMinutes(1)
         };
 
         /// <summary>
@@ -78,7 +82,9 @@ namespace QuantConnect.Lean.Engine.DataFeeds
         {
             _date = date;
             _config = config;
-            _shouldCacheDataPoints = false;
+            _shouldCacheDataPoints = !_config.IsCustomData && _config.Resolution >= Resolution.Hour
+                && _config.Type != typeof(FineFundamental) && _config.Type != typeof(CoarseFundamental)
+                && !DataCacheProvider.IsDataEphemeral;
 
             // we know these type implement the streamReader interface lets avoid dynamic reflection call to figure it out
             if (_config.Type == typeof(TradeBar) || _config.Type == typeof(QuoteBar) || _config.Type == typeof(Tick))
