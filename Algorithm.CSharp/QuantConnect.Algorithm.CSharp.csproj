@@ -149,6 +149,18 @@
     <Compile Include="AltData\QuiverWallStreetBetsDataAlgorithm.cs" />
     <Compile Include="FutureOptionCallITMGreeksExpiryRegressionAlgorithm.cs" />
     <Compile Include="FuturesAndFuturesOptionsExpiryTimeAndLiquidationRegressionAlgorithm.cs" />
+    <Compile Include="My Projects\Archive\Amber.cs" />
+    <Compile Include="My Projects\Archive\Benchmark.cs" />
+    <Compile Include="My Projects\Archive\Ebony.cs" />
+    <Compile Include="My Projects\Archive\Indigo.cs" />
+    <Compile Include="My Projects\Archive\Khaki.cs" />
+    <Compile Include="My Projects\Archive\Lilac.cs" />
+    <Compile Include="My Projects\Archive\Rose.cs" />
+    <Compile Include="My Projects\Archive\Sky.cs" />
+    <Compile Include="My Projects\Jade.cs" />
+    <Compile Include="My Projects\Jade.HoldingType.cs" />
+    <Compile Include="My Projects\Jade.Quant.cs" />
+    <Compile Include="My Projects\Jade.UniverseType.cs" />
     <Compile Include="OnOrderEventExceptionRegression.cs" />
     <Compile Include="FutureOptionCallITMExpiryRegressionAlgorithm.cs" />
     <Compile Include="FutureOptionCallOTMExpiryRegressionAlgorithm.cs" />
@@ -459,6 +471,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DaylightSavingTimeHistoryRegressionAlgorithm.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="My Projects\Notes.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
