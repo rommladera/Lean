@@ -334,6 +334,8 @@ namespace QuantConnect.Algorithm.CSharp
 
         private void PlotCore()
         {
+            // TODO: Plot Portfolio Performance
+
             if (MyUniverse.Keys.Contains("SPY"))
             {
                 var spy = MyUniverse["SPY"];
@@ -341,11 +343,12 @@ namespace QuantConnect.Algorithm.CSharp
                 if (spy.Security.Price != 0.00m)
                 {
                     Plot("SPY", "Price", spy.Security.Price);
-                    if (spy.VWAP_01 != 0) Plot("SPY", "VWAP 01", spy.VWAP_01);
-                    if (spy.VWAP_02 != 0) Plot("SPY", "VWAP 02", spy.VWAP_02);
-                    if (spy.VWAP_04 != 0) Plot("SPY", "VWAP 04", spy.VWAP_04);
-                    if (spy.VWAP_08 != 0) Plot("SPY", "VWAP 08", spy.VWAP_08);
-                    if (spy.VWAP_16 != 0) Plot("SPY", "VWAP 16", spy.VWAP_16);
+
+                    if (spy.VWAP_01 != 0) Plot("SPY VWAP", "01", spy.VWAP_01);
+                    if (spy.VWAP_02 != 0) Plot("SPY VWAP", "02", spy.VWAP_02);
+                    if (spy.VWAP_04 != 0) Plot("SPY VWAP", "04", spy.VWAP_04);
+                    if (spy.VWAP_08 != 0) Plot("SPY VWAP", "08", spy.VWAP_08);
+                    if (spy.VWAP_16 != 0) Plot("SPY VWAP", "16", spy.VWAP_16);
 
                     Plot("MOMP Minute", "01", spy.MOMP_Minute_01);
                     Plot("MOMP Minute", "02", spy.MOMP_Minute_02);
@@ -364,8 +367,6 @@ namespace QuantConnect.Algorithm.CSharp
 
         private void OnTick()
         {
-
-
             if (core.MarketOpenTime(-1)) // Before First trade
             {
                 Debug($",{Time}, Before Market Open");
@@ -391,6 +392,7 @@ namespace QuantConnect.Algorithm.CSharp
             if (core.MarketCloseTime()) // After Last Trade/First Close
             {
                 Debug($",{Time}, Market Close");
+                PlotCore();
             }
         }
     }
