@@ -178,13 +178,12 @@ namespace QuantConnect.Algorithm.CSharp
                     holding.InvestedQuantity += quantity;
 
                     core.Debug($",{core.Time}, Quant {Tag}, Bought {quantity} of {symbol} at {buyPrice} for {buyTotalPrice} total.");
-
                 }
                 else
                 {
                     // sell
-                    quantity = Math.Abs(quantity); // make positive
-                    core.Debug($",{core.Time}, Quant {Tag}, Selling {quantity} of {symbol}.");
+                    // quantity = Math.Abs(quantity); // make positive
+                    core.Debug($",{core.Time}, Quant {Tag}, Selling {-quantity} of {symbol}.");
 
                     // Check if symbol in Holdings
                     if (!Holdings.Keys.Contains(symbol))
@@ -195,15 +194,15 @@ namespace QuantConnect.Algorithm.CSharp
 
                     // check holding quantity
                     var investedQuantity = Holdings[symbol].InvestedQuantity;
-                    if (investedQuantity < quantity)
+                    if (investedQuantity < -quantity)
                     {
-                        core.Debug($",{core.Time}, Quant {Tag}, Not enought quantity to sell, only have {investedQuantity} in holdings. So selling all");
-                        quantity = investedQuantity;
+                        core.Debug($",{core.Time}, Quant {Tag}, Not enough quantity to sell, only have {investedQuantity} in holdings. So selling all");
+                        quantity = -investedQuantity;
                     }
 
                     // passed, time to sell
                     var soldPrice = security.BidPrice;
-                    var soldTotalPrice = soldPrice * quantity;
+                    var soldTotalPrice = soldPrice * -quantity;
 
                     var holding = Holdings[symbol];
 
@@ -211,10 +210,20 @@ namespace QuantConnect.Algorithm.CSharp
                     TotalWins += (holding.AverageBoughtPrice < soldPrice) ? 1 : 0;
                     Cash += soldTotalPrice;
 
-                    holding.InvestedQuantity -= quantity;
+                    holding.InvestedQuantity += quantity;
                     if (holding.InvestedQuantity == 0) Holdings.Remove(symbol);
 
-                    core.Debug($",{core.Time}, Quant {Tag}, Sold {quantity} of {symbol} at {soldPrice} for {soldTotalPrice} total.");
+                    core.Debug($",{core.Time}, Quant {Tag}, Sold {-quantity} of {symbol} at {soldPrice} for {soldTotalPrice} total.");
+
+                    // quantity = -quantity;
+                }
+
+                if (Live)
+                {
+                    core.Debug($",{core.Time}, Quant {Tag}, Live MarketOrder for {quantity} of {symbol}.");
+                    var sec = core.MyUniverse[symbol].Security;
+                    // if (core.Securities.ContainsKey(symbol))
+                        core.MarketOrder(sec.Symbol, quantity);
                 }
             }
 

@@ -242,6 +242,7 @@ namespace QuantConnect.Algorithm.CSharp
                     return true;
                 });
             TestQuant.Plot = true;
+            TestQuant.Live = true;
             Quants.Add(TestQuant.Tag, TestQuant);
 
             SetWarmUp(TimeSpan.FromDays(40));

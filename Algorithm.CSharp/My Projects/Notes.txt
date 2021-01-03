@@ -1,9 +1,12 @@
 ﻿TODO:
 
--Plot Porfolio Performance
--Debug show holdings, either beginning of day or eod or both
--Live trading
+*-Live trading
 	-Match debug data to see if the same calculations
+-Plot Porfolio Performance
+-Plot Quant Performance, so you can match with Portfolio
+-Debug show holdings, either beginning of day or eod or both
+-Add LoggingOn property
+
 
 
 
