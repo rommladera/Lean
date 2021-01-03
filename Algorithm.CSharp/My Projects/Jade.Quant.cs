@@ -69,18 +69,18 @@ namespace QuantConnect.Algorithm.CSharp
                 // check for valid symbol
                 if (symbol == null || symbol == "")
                 {
-                    core.Debug($",{core.Time}, Quant {Tag}, Invalid symbol.");
+                    core.Logger($"Quant {Tag}, Invalid symbol.");
                     return;
                 }
 
                 // check if universe contain symbol
                 if (!core.MyUniverse.Keys.Contains(symbol))
                 {
-                    core.Debug($",{core.Time}, Quant {Tag}, Universe does not contain {symbol}.");
+                    core.Logger($"Quant {Tag}, Universe does not contain {symbol}.");
                     return;
                 }
 
-                core.Debug($",{core.Time}, Quant {Tag}, SetHoldings symbol={symbol}, percentage={percentage}");
+                core.Logger($"Quant {Tag}, SetHoldings symbol={symbol}, percentage={percentage}");
 
                 var universeItem = core.MyUniverse[symbol];
                 var security = universeItem.Security;
@@ -88,7 +88,7 @@ namespace QuantConnect.Algorithm.CSharp
                 //var totalHoldingsValue = Holdings.Values.Sum(s => s.TotalValue);
                 //var totalPortfolioValue = totalHoldingsValue + Cash;
                 var targetValue = TotalPortfolioValue * percentage;
-                core.Debug($",{core.Time}, Quant {Tag}, TotalHoldingsValue={TotalHoldingsValue}, TotalPortfolioValue={TotalPortfolioValue}, targetValue={targetValue}");
+                core.Logger($"Quant {Tag}, TotalHoldingsValue={TotalHoldingsValue}, TotalPortfolioValue={TotalPortfolioValue}, targetValue={targetValue}");
 
                 // If we currently have it, find the price to adust, and determine how many quantity to get there
                 decimal price;
@@ -97,7 +97,7 @@ namespace QuantConnect.Algorithm.CSharp
                     .Where(w => w.UniverseItem.Security.Symbol.Value == symbol)
                     .Sum(s => s.TotalValue);
                 var targetAdjustValue = targetValue - totalHoldingValue;
-                core.Debug($",{core.Time}, Quant {Tag}, totalHoldingValue={totalHoldingValue}, targetAdjustValue={targetAdjustValue}");
+                core.Logger($"Quant {Tag}, totalHoldingValue={totalHoldingValue}, targetAdjustValue={targetAdjustValue}");
                 if (targetAdjustValue == 0)
                 {
                     // Already there
@@ -116,7 +116,7 @@ namespace QuantConnect.Algorithm.CSharp
                     quantityAdjust = (int)(targetAdjustValue / price);
                     quantityAdjust -= 1; // one more to go below the target
                 }
-                core.Debug($",{core.Time}, Quant {Tag}, price={price}, quantityAdjust={quantityAdjust}");
+                core.Logger($"Quant {Tag}, price={price}, quantityAdjust={quantityAdjust}");
 
                 if (quantityAdjust == 0) return; // we're good
 
@@ -127,14 +127,14 @@ namespace QuantConnect.Algorithm.CSharp
             {
                 if (symbol == null || symbol == "" || quantity == 0)
                 {
-                    core.Debug($",{core.Time}, Quant {Tag}, Invalid symbol or qunatity.");
+                    core.Logger($"Quant {Tag}, Invalid symbol or qunatity.");
                     return;
                 }
 
                 // check if universe contain symbol
                 if (!core.MyUniverse.Keys.Contains(symbol))
                 {
-                    core.Debug($",{core.Time}, Quant {Tag}, Universe does not contain {symbol}.");
+                    core.Logger($"Quant {Tag}, Universe does not contain {symbol}.");
                     return;
                 }
                 var security = core.MyUniverse[symbol].Security;
@@ -142,7 +142,7 @@ namespace QuantConnect.Algorithm.CSharp
                 if (quantity > 0)
                 {
                     // buy
-                    core.Debug($",{core.Time}, Quant {Tag}, Buying {quantity} of {symbol}. Price={security.Price}, AskPrice={security.AskPrice}, BidPrice={security.BidPrice}");
+                    core.Logger($"Quant {Tag}, Buying {quantity} of {symbol}. Price={security.Price}, AskPrice={security.AskPrice}, BidPrice={security.BidPrice}");
 
                     var universeItem = core.MyUniverse[symbol];
 
@@ -151,7 +151,7 @@ namespace QuantConnect.Algorithm.CSharp
 
                     if (Cash < buyTotalPrice)
                     {
-                        core.Debug($",{core.Time}, Quant {Tag}, Not enough cash. Total buy price of {buyTotalPrice} with only {Cash} on hand.");
+                        core.Logger($"Quant {Tag}, Not enough cash. Total buy price of {buyTotalPrice} with only {Cash} on hand.");
                         return;
                     }
 
@@ -177,18 +177,18 @@ namespace QuantConnect.Algorithm.CSharp
 
                     holding.InvestedQuantity += quantity;
 
-                    core.Debug($",{core.Time}, Quant {Tag}, Bought {quantity} of {symbol} at {buyPrice} for {buyTotalPrice} total.");
+                    core.Logger($"Quant {Tag}, Bought {quantity} of {symbol} at {buyPrice} for {buyTotalPrice} total.");
                 }
                 else
                 {
                     // sell
                     // quantity = Math.Abs(quantity); // make positive
-                    core.Debug($",{core.Time}, Quant {Tag}, Selling {-quantity} of {symbol}. Price={security.Price}, AskPrice={security.AskPrice}, BidPrice={security.BidPrice}");
+                    core.Logger($"Quant {Tag}, Selling {-quantity} of {symbol}. Price={security.Price}, AskPrice={security.AskPrice}, BidPrice={security.BidPrice}");
 
                     // Check if symbol in Holdings
                     if (!Holdings.Keys.Contains(symbol))
                     {
-                        core.Debug($",{core.Time}, Quant {Tag}, symbol not in holdings.");
+                        core.Logger($"Quant {Tag}, symbol not in holdings.");
                         return;
                     }
 
@@ -196,7 +196,7 @@ namespace QuantConnect.Algorithm.CSharp
                     var investedQuantity = Holdings[symbol].InvestedQuantity;
                     if (investedQuantity < -quantity)
                     {
-                        core.Debug($",{core.Time}, Quant {Tag}, Not enough quantity to sell, only have {investedQuantity} in holdings. So selling all");
+                        core.Logger($"Quant {Tag}, Not enough quantity to sell, only have {investedQuantity} in holdings. So selling all");
                         quantity = -investedQuantity;
                     }
 
@@ -213,14 +213,14 @@ namespace QuantConnect.Algorithm.CSharp
                     holding.InvestedQuantity += quantity;
                     if (holding.InvestedQuantity == 0) Holdings.Remove(symbol);
 
-                    core.Debug($",{core.Time}, Quant {Tag}, Sold {-quantity} of {symbol} at {soldPrice} for {soldTotalPrice} total.");
+                    core.Logger($"Quant {Tag}, Sold {-quantity} of {symbol} at {soldPrice} for {soldTotalPrice} total.");
 
                     // quantity = -quantity;
                 }
 
                 if (Live)
                 {
-                    core.Debug($",{core.Time}, Quant {Tag}, Live MarketOrder for {quantity} of {symbol}.");
+                    core.Logger($"Quant {Tag}, Live MarketOrder for {quantity} of {symbol}.");
                     var sec = core.MyUniverse[symbol].Security;
                     // if (core.Securities.ContainsKey(symbol))
                     core.MarketOrder(sec.Symbol, quantity, true, Tag + "|"); // PIPE added to split the tag at OnOrderEvent...seems to be a bug

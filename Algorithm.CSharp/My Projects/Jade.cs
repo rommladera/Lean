@@ -29,7 +29,7 @@ namespace QuantConnect.Algorithm.CSharp
 
         public override void Initialize()
         {
-            Debug($",{Time}, {this.GetType().Name} Initializing");
+            Logger($"{this.GetType().Name} Initializing");
             core = this;
 
             SetBrokerageModel(BrokerageName.Alpaca, AccountType.Margin);
@@ -260,10 +260,15 @@ namespace QuantConnect.Algorithm.CSharp
             Schedule.On(DateRules.EveryDay(), TimeRules.Every(TimeSpan.FromMinutes(10)), () =>
             {
                 if (IsWarmingUp) return;
-                if (LiveMode) Debug($",{Time}, Hello");
+                if (LiveMode) Logger($"Hello");
             });
 
-            Debug($",{Time}, {this.GetType().Name} Initialized");
+            Logger($"{this.GetType().Name} Initialized");
+        }
+
+        public void Logger(string message)
+        {
+            Debug($",{Time}, {message}");
         }
 
         private bool MarketOpenTime(int minutes = 0)
@@ -328,7 +333,7 @@ namespace QuantConnect.Algorithm.CSharp
             // Process MyUniverse First (additions fist)
             if (!MyUniverse.ContainsKey("SPY"))
             {
-                if (LiveMode || LocalDevMode || ShowDebug) Debug($",{Time}, My Universe added SPY");
+                if (LiveMode || LocalDevMode || ShowDebug) Logger($"My Universe added SPY");
                 MyUniverse.Add("SPY", new UniverseType(Securities["SPY"]));
             }
 
@@ -342,7 +347,7 @@ namespace QuantConnect.Algorithm.CSharp
                     MyUniverse.Add(symbol, new UniverseType(security));
                 }
             }
-            if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Debug($",{Time}, My Universe added {securities}");
+            if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Logger($"My Universe added {securities}");
 
             //var symbols = changes.AddedSecurities.OrderBy(o => o.Symbol)
             //    .Where(w => !MyUniverse.ContainsKey(w.Symbol.Value))
@@ -350,7 +355,7 @@ namespace QuantConnect.Algorithm.CSharp
             //foreach (var symbol in symbols)
             //    MyUniverse.Add(symbol.Symbol.Value, new UniverseType(symbol));
             //var symbolsJoined = String.Join(",", symbols.Select(s => s.Symbol.Value).ToArray());
-            //if ((LiveMode || LocalDevMode || ShowDebug) && symbolsJoined != "") Debug($",{Time}, My Universe added {symbolsJoined}");
+            //if ((LiveMode || LocalDevMode || ShowDebug) && symbolsJoined != "") Logger($"My Universe added {symbolsJoined}");
 
 
             // Process TopUniverse referencing MyUniverse
@@ -364,7 +369,7 @@ namespace QuantConnect.Algorithm.CSharp
                     TopUniverse.Add(symbol, MyUniverse[symbol]);
                 }
             }
-            if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Debug($",{Time}, Top Universe added {securities}");
+            if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Logger($"Top Universe added {securities}");
 
             securities = "";
             foreach (var security in changes.RemovedSecurities.OrderBy(o => o.Symbol))
@@ -376,12 +381,12 @@ namespace QuantConnect.Algorithm.CSharp
                     TopUniverse.Remove(symbol);
                 }
             }
-            if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Debug($",{Time}, Top Universe removed {securities}");
+            if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Logger($"Top Universe removed {securities}");
 
             securities = "";
             foreach (var security in TopUniverse.Keys.OrderBy(o => o))
                 securities += (securities != "") ? "," + security : security;
-            if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Debug($",{Time}, Top Universe {securities}");
+            if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Logger($"Top Universe {securities}");
 
 
 
@@ -393,12 +398,12 @@ namespace QuantConnect.Algorithm.CSharp
             foreach (var symbol in removedSymbols)
                 MyUniverse.Remove(symbol);
             var symbolsJoined = String.Join(",", removedSymbols);
-            if ((LiveMode || LocalDevMode || ShowDebug) && symbolsJoined != "") Debug($",{Time}, My Universe removed {symbolsJoined}");
+            if ((LiveMode || LocalDevMode || ShowDebug) && symbolsJoined != "") Logger($"My Universe removed {symbolsJoined}");
 
             securities = "";
             foreach (var security in MyUniverse.Keys.OrderBy(o => o))
                 securities += (securities != "") ? "," + security : security;
-            if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Debug($",{Time}, My Universe {securities}");
+            if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Logger($"My Universe {securities}");
 
         }
 
@@ -412,19 +417,19 @@ namespace QuantConnect.Algorithm.CSharp
 
             // var quant = Quants[tag];
 
-            core.Debug($",{core.Time}, Quant {tag}, OrderEvent {orderEvent.Symbol.Value}, {orderEvent.Status}, {orderEvent.FillQuantity}, {orderEvent.FillPrice}");
+            core.Logger($"Quant {tag}, OrderEvent {orderEvent.Symbol.Value}, {orderEvent.Status}, {orderEvent.FillQuantity}, {orderEvent.FillPrice}");
         }
 
         private void OnTick()
         {
             if (core.MarketOpenTime(-1)) // Before First trade
             {
-                Debug($",{Time}, Before Market Open");
+                Logger($"Before Market Open");
             }
 
             if (core.MarketOpenTime()) // First trade
             {
-                Debug($",{Time}, First Trade");
+                Logger($"First Trade");
                 PlotCore();
             }
 
@@ -435,13 +440,13 @@ namespace QuantConnect.Algorithm.CSharp
 
             if (core.MarketCloseTime(-1)) // Last trade
             {
-                Debug($",{Time}, Last Trade");
+                Logger($"Last Trade");
                 PlotCore();
             }
 
             if (core.MarketCloseTime()) // After Last Trade/First Close
             {
-                Debug($",{Time}, Market Close");
+                Logger($"Market Close");
                 PlotCore();
             }
         }
