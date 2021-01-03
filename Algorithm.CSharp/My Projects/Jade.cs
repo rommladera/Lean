@@ -220,6 +220,30 @@ namespace QuantConnect.Algorithm.CSharp
             //Quants.Add(TestQuant.Tag, TestQuant);
             //#endregion
 
+            var TestQuant = new Quant("Test", 10000,
+                q =>
+                {
+                    if (core.MarketOpenTime()) // First trade
+                    {
+                        var item = MyUniverse.Values
+                            .Where(w => w.Security.HasData)
+                            .OrderByDescending(o => o.MOMP_Daily_01)
+                            .Take(1)
+                            .SingleOrDefault();
+
+                        var random = new Random();
+                        int num = random.Next(20);
+                        decimal percentRisk = num / 100.00m;
+
+                        if (item != null)
+                            q.SetHoldings(item.Security.Symbol.Value, percentRisk);
+                    }
+
+                    return true;
+                });
+            TestQuant.Plot = true;
+            Quants.Add(TestQuant.Tag, TestQuant);
+
             SetWarmUp(TimeSpan.FromDays(40));
 
             Schedule.On(DateRules.EveryDay(), TimeRules.Every(TimeSpan.FromMinutes(1)), () =>
@@ -334,8 +358,6 @@ namespace QuantConnect.Algorithm.CSharp
 
         private void PlotCore()
         {
-            // TODO: Plot Portfolio Performance
-
             if (MyUniverse.Keys.Contains("SPY"))
             {
                 var spy = MyUniverse["SPY"];

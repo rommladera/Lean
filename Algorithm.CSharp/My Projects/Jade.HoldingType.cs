@@ -18,8 +18,16 @@ namespace QuantConnect.Algorithm.CSharp
         {
             public UniverseType UniverseItem { get; set; }
             public int InvestedQuantity { get; set; }
-            public decimal BoughtPrice { get; set; }
+            public decimal AverageBoughtPrice { get; set; }
             public decimal SoldPrice { get; set; }
+
+            public decimal TotalValue
+            {
+                get
+                {
+                    return (UniverseItem.Security.Price * InvestedQuantity);
+                }
+            }
 
             public HoldingType()
             {

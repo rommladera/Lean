@@ -80,21 +80,43 @@ namespace QuantConnect.Algorithm.CSharp
                     return;
                 }
 
+                core.Debug($",{core.Time}, Quant {Tag}, SetHoldings symbol={symbol}, percentage={percentage}");
+
                 var universeItem = core.MyUniverse[symbol];
                 var security = universeItem.Security;
 
-                var totalHoldingsValue = Holdings.Values.Sum(s => s.UniverseItem.Security.Price);
+                var totalHoldingsValue = Holdings.Values.Sum(s => s.TotalValue);
                 var totalPortfolioValue = totalHoldingsValue + Cash;
                 var targetValue = totalPortfolioValue * percentage;
+                core.Debug($",{core.Time}, Quant {Tag}, totalHoldingsValue={totalHoldingsValue}, totalPortfolioValue={totalPortfolioValue}, targetValue={targetValue}");
 
-                var price = security.Price;
-                var targetQuantity = (int)(targetValue / price);
-
-                var investedQuantity = (Holdings.Keys.Contains(symbol))
-                    ? Holdings[symbol].InvestedQuantity
-                    : 0;
-
-                var quantityAdjust = targetQuantity - investedQuantity;
+                // If we currently have it, find the price to adust, and determine how many quantity to get there
+                decimal price;
+                int quantityAdjust;
+                var totalHoldingValue = Holdings.Values
+                    .Where(w => w.UniverseItem.Security.Symbol.Value == symbol)
+                    .Sum(s => s.TotalValue);
+                var targetAdjustValue = targetValue - totalHoldingValue;
+                core.Debug($",{core.Time}, Quant {Tag}, totalHoldingValue={totalHoldingValue}, targetAdjustValue={targetAdjustValue}");
+                if (targetAdjustValue == 0)
+                {
+                    // Already there
+                    return;
+                }
+                else if (targetAdjustValue > 0)
+                {
+                    // we buy to get to target
+                    price = security.AskPrice;
+                    quantityAdjust = (int)(targetAdjustValue / price);
+                }
+                else
+                {
+                    // we sell to get to target
+                    price = security.BidPrice;
+                    quantityAdjust = (int)(targetAdjustValue / price);
+                    quantityAdjust -= 1; // one more to go below the target
+                }
+                core.Debug($",{core.Time}, Quant {Tag}, price={price}, quantityAdjust={quantityAdjust}");
 
                 if (quantityAdjust == 0) return; // we're good
 
@@ -140,15 +162,23 @@ namespace QuantConnect.Algorithm.CSharp
                     if (Holdings.Keys.Contains(symbol))
                     {
                         holding = Holdings[symbol];
+
+                        // calculate average bought price
+                        var totalBoughtPrice = holding.InvestedQuantity * holding.AverageBoughtPrice;
+                        holding.AverageBoughtPrice = (buyTotalPrice + totalBoughtPrice) / (holding.InvestedQuantity + quantity);
                     }
                     else
                     {
                         holding = new HoldingType();
+                        holding.UniverseItem = universeItem;
+                        holding.AverageBoughtPrice = buyPrice;
                         Holdings.Add(symbol, holding);
                     }
 
                     holding.InvestedQuantity += quantity;
-                    holding.BoughtPrice = buyPrice;
+
+                    core.Debug($",{core.Time}, Quant {Tag}, Bought {quantity} of {symbol} at {buyPrice} for {buyTotalPrice} total.");
+
                 }
                 else
                 {
@@ -167,24 +197,24 @@ namespace QuantConnect.Algorithm.CSharp
                     var investedQuantity = Holdings[symbol].InvestedQuantity;
                     if (investedQuantity < quantity)
                     {
-                        core.Debug($",{core.Time}, Quant {Tag}, Not enought quantity to sell, only have {investedQuantity} in holdings.");
-                        return;
+                        core.Debug($",{core.Time}, Quant {Tag}, Not enought quantity to sell, only have {investedQuantity} in holdings. So selling all");
+                        quantity = investedQuantity;
                     }
 
                     // passed, time to sell
                     var soldPrice = security.BidPrice;
                     var soldTotalPrice = soldPrice * quantity;
 
-                    core.Debug($",{core.Time}, Quant {Tag}, Sold {quantity} of {symbol} at {soldPrice} for {soldTotalPrice} total.");
-
                     var holding = Holdings[symbol];
 
                     TotalOrders++;
-                    TotalWins += (holding.BoughtPrice < soldPrice) ? 1 : 0;
+                    TotalWins += (holding.AverageBoughtPrice < soldPrice) ? 1 : 0;
                     Cash += soldTotalPrice;
 
                     holding.InvestedQuantity -= quantity;
                     if (holding.InvestedQuantity == 0) Holdings.Remove(symbol);
+
+                    core.Debug($",{core.Time}, Quant {Tag}, Sold {quantity} of {symbol} at {soldPrice} for {soldTotalPrice} total.");
                 }
             }
 

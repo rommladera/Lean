@@ -1,5 +1,13 @@
 ﻿TODO:
 
+-Plot Porfolio Performance
+-Debug show holdings, either beginning of day or eod or both
+-Live trading
+	-Match debug data to see if the same calculations
+
+
+
+
 -Check Momentum Values, where does daily open and close
 	-Check files and see if you can find out (Files didn't work)
 
@@ -8,14 +16,6 @@
 
 -Add daily winner
 
--Fix setholdings 
-	-Settle the holding percentage of given symbol, may have to look at Invested Security
-	-if same as invested security, simply balance against it
-	-if not the same, balance from 0
-
-- Continue tracking holdings per quant
-
-Create All Universe, aprat from TopUniverse
 
 Quantconnect:
 User ID: 83300
