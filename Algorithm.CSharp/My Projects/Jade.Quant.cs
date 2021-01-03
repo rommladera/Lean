@@ -17,7 +17,7 @@ namespace QuantConnect.Algorithm.CSharp
         private class Quant
         {
             public string Tag = "";
-            private decimal Cash = 0.00m;
+            public decimal Cash = 0.00m;
             public Func<Quant, bool> QuantLogic;
 
 
@@ -33,21 +33,21 @@ namespace QuantConnect.Algorithm.CSharp
             public int TotalOrders = 0;
             public int TotalWins = 0;
 
-            //public decimal TotalHoldingsValue
-            //{
-            //    get
-            //    {
-            //        return Holdings.Values.Sum(s => s.UniverseItem.Security.Price);
-            //    }
-            //}
+            public decimal TotalHoldingsValue
+            {
+                get
+                {
+                    return Holdings.Values.Sum(s => s.TotalValue);
+                }
+            }
 
-            //public decimal TotalPortfolioValue
-            //{
-            //    get
-            //    {
-            //        return TotalHoldingsValue + Cash;
-            //    }
-            //}
+            public decimal TotalPortfolioValue
+            {
+                get
+                {
+                    return TotalHoldingsValue + Cash;
+                }
+            }
 
             // public decimal Return
 
@@ -85,10 +85,10 @@ namespace QuantConnect.Algorithm.CSharp
                 var universeItem = core.MyUniverse[symbol];
                 var security = universeItem.Security;
 
-                var totalHoldingsValue = Holdings.Values.Sum(s => s.TotalValue);
-                var totalPortfolioValue = totalHoldingsValue + Cash;
-                var targetValue = totalPortfolioValue * percentage;
-                core.Debug($",{core.Time}, Quant {Tag}, totalHoldingsValue={totalHoldingsValue}, totalPortfolioValue={totalPortfolioValue}, targetValue={targetValue}");
+                //var totalHoldingsValue = Holdings.Values.Sum(s => s.TotalValue);
+                //var totalPortfolioValue = totalHoldingsValue + Cash;
+                var targetValue = TotalPortfolioValue * percentage;
+                core.Debug($",{core.Time}, Quant {Tag}, TotalHoldingsValue={TotalHoldingsValue}, TotalPortfolioValue={TotalPortfolioValue}, targetValue={targetValue}");
 
                 // If we currently have it, find the price to adust, and determine how many quantity to get there
                 decimal price;
@@ -142,11 +142,11 @@ namespace QuantConnect.Algorithm.CSharp
                 if (quantity > 0)
                 {
                     // buy
-                    core.Debug($",{core.Time}, Quant {Tag}, Buying {quantity} of {symbol}.");
+                    core.Debug($",{core.Time}, Quant {Tag}, Buying {quantity} of {symbol}. Price={security.Price}, AskPrice={security.AskPrice}, BidPrice={security.BidPrice}");
 
                     var universeItem = core.MyUniverse[symbol];
 
-                    var buyPrice = universeItem.Security.AskPrice;
+                    var buyPrice = security.AskPrice;
                     var buyTotalPrice = buyPrice * quantity;
 
                     if (Cash < buyTotalPrice)
@@ -183,7 +183,7 @@ namespace QuantConnect.Algorithm.CSharp
                 {
                     // sell
                     // quantity = Math.Abs(quantity); // make positive
-                    core.Debug($",{core.Time}, Quant {Tag}, Selling {-quantity} of {symbol}.");
+                    core.Debug($",{core.Time}, Quant {Tag}, Selling {-quantity} of {symbol}. Price={security.Price}, AskPrice={security.AskPrice}, BidPrice={security.BidPrice}");
 
                     // Check if symbol in Holdings
                     if (!Holdings.Keys.Contains(symbol))
@@ -223,7 +223,7 @@ namespace QuantConnect.Algorithm.CSharp
                     core.Debug($",{core.Time}, Quant {Tag}, Live MarketOrder for {quantity} of {symbol}.");
                     var sec = core.MyUniverse[symbol].Security;
                     // if (core.Securities.ContainsKey(symbol))
-                        core.MarketOrder(sec.Symbol, quantity);
+                    core.MarketOrder(sec.Symbol, quantity, true, Tag + "|"); // PIPE added to split the tag at OnOrderEvent...seems to be a bug
                 }
             }
 

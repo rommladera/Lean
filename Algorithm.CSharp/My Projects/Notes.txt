@@ -1,13 +1,17 @@
 ﻿TODO:
 
-*-Live trading
-	-Match debug data to see if the same calculations
--Plot Porfolio Performance
--Plot Quant Performance, so you can match with Portfolio
+
+*-Match debug data to see if the same calculations
+*-Plot Porfolio Performance
+*-Plot Quant Performance, so you can match with Portfolio
+
+	Plot data and debug are almost the same with very few discrepancy.  Don't know why price is slight slightly different.
+
+
+
+
 -Debug show holdings, either beginning of day or eod or both
 -Add LoggingOn property
-
-
 
 
 

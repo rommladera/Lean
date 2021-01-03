@@ -1,6 +1,7 @@
 ﻿using QuantConnect.Brokerages;
 using QuantConnect.Data.UniverseSelection;
 using QuantConnect.Indicators;
+using QuantConnect.Orders;
 using QuantConnect.Securities;
 using QuantConnect.Securities.Equity;
 using System;
@@ -220,14 +221,16 @@ namespace QuantConnect.Algorithm.CSharp
             //Quants.Add(TestQuant.Tag, TestQuant);
             //#endregion
 
-            var TestQuant = new Quant("Test", 10000,
+            var TestQuant = new Quant(
+                "Test",
+                Portfolio.TotalPortfolioValue,
                 q =>
                 {
                     if (core.MarketOpenTime()) // First trade
                     {
                         var item = MyUniverse.Values
                             .Where(w => w.Security.HasData)
-                            .OrderByDescending(o => o.MOMP_Daily_01)
+                            .OrderByDescending(o => o.MOMP_Daily_05)
                             .Take(1)
                             .SingleOrDefault();
 
@@ -261,6 +264,63 @@ namespace QuantConnect.Algorithm.CSharp
             });
 
             Debug($",{Time}, {this.GetType().Name} Initialized");
+        }
+
+        private bool MarketOpenTime(int minutes = 0)
+        {
+            return (!Market.DateTimeIsOpen(Time.AddMinutes(-minutes - 1)) && Market.DateTimeIsOpen(Time.AddMinutes(-minutes)));
+        }
+
+        private bool MarketCloseTime(int minutes = 0)
+        {
+            return (Market.DateTimeIsOpen(Time.AddMinutes(-minutes - 1)) && !Market.DateTimeIsOpen(Time.AddMinutes(-minutes)));
+        }
+
+        private bool MarketIsOpen()
+        {
+            return (Market.DateTimeIsOpen(Time));
+        }
+
+        private void PlotCore()
+        {
+            if (MyUniverse.Keys.Contains("SPY"))
+            {
+                var spy = MyUniverse["SPY"];
+
+                if (spy.Security.Price != 0.00m)
+                {
+                    Plot("SPY", "Price", spy.Security.Price);
+
+                    //if (spy.VWAP_01 != 0) Plot("SPY VWAP", "01", spy.VWAP_01);
+                    //if (spy.VWAP_02 != 0) Plot("SPY VWAP", "02", spy.VWAP_02);
+                    //if (spy.VWAP_04 != 0) Plot("SPY VWAP", "04", spy.VWAP_04);
+                    //if (spy.VWAP_08 != 0) Plot("SPY VWAP", "08", spy.VWAP_08);
+                    //if (spy.VWAP_16 != 0) Plot("SPY VWAP", "16", spy.VWAP_16);
+
+                    //Plot("MOMP Minute", "01", spy.MOMP_Minute_01);
+                    //Plot("MOMP Minute", "02", spy.MOMP_Minute_02);
+                    //Plot("MOMP Minute", "04", spy.MOMP_Minute_04);
+                    //Plot("MOMP Minute", "08", spy.MOMP_Minute_08);
+                    //Plot("MOMP Minute", "16", spy.MOMP_Minute_16);
+
+                    //Plot("MOMP Daily", "01", spy.MOMP_Daily_01);
+                    //Plot("MOMP Daily", "05", spy.MOMP_Daily_05);
+                    //Plot("MOMP Daily", "10", spy.MOMP_Daily_10);
+                    //Plot("MOMP Daily", "20", spy.MOMP_Daily_20);
+                    //Plot("MOMP Daily", "40", spy.MOMP_Daily_40);
+                }
+
+                // Plot Portfolio
+                // Plot("Portfolio", "TotalPortfolioValue", Portfolio.TotalPortfolioValue);
+
+
+
+                // Validator
+                Plot("Validator", "Source1", Portfolio.TotalPortfolioValue);
+
+                var quant = Quants["Test"];
+                Plot("Validator", "Test1", quant.TotalPortfolioValue);
+            }
         }
 
         public override void OnSecuritiesChanged(SecurityChanges changes)
@@ -342,50 +402,17 @@ namespace QuantConnect.Algorithm.CSharp
 
         }
 
-        private bool MarketOpenTime(int minutes = 0)
+        public override void OnOrderEvent(OrderEvent orderEvent)
         {
-            return (!Market.DateTimeIsOpen(Time.AddMinutes(-minutes - 1)) && Market.DateTimeIsOpen(Time.AddMinutes(-minutes)));
-        }
+            var order = Transactions.GetOrderById(orderEvent.OrderId);
 
-        private bool MarketCloseTime(int minutes = 0)
-        {
-            return (Market.DateTimeIsOpen(Time.AddMinutes(-minutes - 1)) && !Market.DateTimeIsOpen(Time.AddMinutes(-minutes)));
-        }
+            // BUG: split tag with PIPE as sent from MarketOrder
+            var tags = order.Tag.Split('|');
+            var tag = tags[0];
 
-        private bool MarketIsOpen()
-        {
-            return (Market.DateTimeIsOpen(Time));
-        }
+            // var quant = Quants[tag];
 
-        private void PlotCore()
-        {
-            if (MyUniverse.Keys.Contains("SPY"))
-            {
-                var spy = MyUniverse["SPY"];
-
-                if (spy.Security.Price != 0.00m)
-                {
-                    Plot("SPY", "Price", spy.Security.Price);
-
-                    if (spy.VWAP_01 != 0) Plot("SPY VWAP", "01", spy.VWAP_01);
-                    if (spy.VWAP_02 != 0) Plot("SPY VWAP", "02", spy.VWAP_02);
-                    if (spy.VWAP_04 != 0) Plot("SPY VWAP", "04", spy.VWAP_04);
-                    if (spy.VWAP_08 != 0) Plot("SPY VWAP", "08", spy.VWAP_08);
-                    if (spy.VWAP_16 != 0) Plot("SPY VWAP", "16", spy.VWAP_16);
-
-                    Plot("MOMP Minute", "01", spy.MOMP_Minute_01);
-                    Plot("MOMP Minute", "02", spy.MOMP_Minute_02);
-                    Plot("MOMP Minute", "04", spy.MOMP_Minute_04);
-                    Plot("MOMP Minute", "08", spy.MOMP_Minute_08);
-                    Plot("MOMP Minute", "16", spy.MOMP_Minute_16);
-
-                    Plot("MOMP Daily", "01", spy.MOMP_Daily_01);
-                    Plot("MOMP Daily", "05", spy.MOMP_Daily_05);
-                    Plot("MOMP Daily", "10", spy.MOMP_Daily_10);
-                    Plot("MOMP Daily", "20", spy.MOMP_Daily_20);
-                    Plot("MOMP Daily", "40", spy.MOMP_Daily_40);
-                }
-            }
+            core.Debug($",{core.Time}, Quant {tag}, OrderEvent {orderEvent.Symbol.Value}, {orderEvent.Status}, {orderEvent.FillQuantity}, {orderEvent.FillPrice}");
         }
 
         private void OnTick()
