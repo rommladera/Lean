@@ -1,11 +1,7 @@
 ﻿TODO:
 
 -- Add plot lines so we can see who wins
-	*-Cumulative Performance
 	-Daily Performance
-
--- Remove from Universe if not in Holdings
-
 
 
 *-Match debug data to see if the same calculations
