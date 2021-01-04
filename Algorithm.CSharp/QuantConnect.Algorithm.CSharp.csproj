@@ -159,6 +159,7 @@
     <Compile Include="My Projects\Archive\Sky.cs" />
     <Compile Include="My Projects\Jade.cs" />
     <Compile Include="My Projects\Jade.HoldingType.cs" />
+    <Compile Include="My Projects\Jade.QuantConfig.cs" />
     <Compile Include="My Projects\Jade.Quant.cs" />
     <Compile Include="My Projects\Jade.UniverseType.cs" />
     <Compile Include="OnOrderEventExceptionRegression.cs" />

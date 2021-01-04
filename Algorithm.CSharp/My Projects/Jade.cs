@@ -35,7 +35,7 @@ namespace QuantConnect.Algorithm.CSharp
             SetBrokerageModel(BrokerageName.Alpaca, AccountType.Margin);
             SetTimeZone(TimeZones.NewYork);
             SetCash(StartingCash);
-            SetStartDate(DateTime.Now.AddDays(-17).Date);
+            SetStartDate(DateTime.Now.AddDays(-38).Date);
             SetEndDate(DateTime.Now.AddDays(-10).Date);
 
             if (LocalDevMode)
@@ -111,11 +111,6 @@ namespace QuantConnect.Algorithm.CSharp
             //TestQuant.Live = false;
             //Quants.Add(TestQuant.Tag, TestQuant);
             //#endregion
-
-
-
-
-
 
             //#region Live
             //TestQuant = new Quant("Live",
@@ -221,32 +216,7 @@ namespace QuantConnect.Algorithm.CSharp
             //Quants.Add(TestQuant.Tag, TestQuant);
             //#endregion
 
-            var TestQuant = new Quant(
-                "Test",
-                Portfolio.TotalPortfolioValue,
-                q =>
-                {
-                    if (core.MarketOpenTime()) // First trade
-                    {
-                        var item = MyUniverse.Values
-                            .Where(w => w.Security.HasData)
-                            .OrderByDescending(o => o.MOMP_Daily_05)
-                            .Take(1)
-                            .SingleOrDefault();
-
-                        var random = new Random();
-                        int num = random.Next(20);
-                        decimal percentRisk = num / 100.00m;
-
-                        if (item != null)
-                            q.SetHoldings(item.Security.Symbol.Value, percentRisk);
-                    }
-
-                    return true;
-                });
-            TestQuant.Plot = true;
-            TestQuant.Live = true;
-            Quants.Add(TestQuant.Tag, TestQuant);
+            QuantConfig();
 
             SetWarmUp(TimeSpan.FromDays(40));
 
@@ -268,7 +238,7 @@ namespace QuantConnect.Algorithm.CSharp
 
         public void Logger(string message)
         {
-            Debug($",{Time}, {message}");
+            // Debug($",{Time}, {message}");
         }
 
         private bool MarketOpenTime(int minutes = 0)
@@ -294,7 +264,7 @@ namespace QuantConnect.Algorithm.CSharp
 
                 if (spy.Security.Price != 0.00m)
                 {
-                    Plot("SPY", "Price", spy.Security.Price);
+                    // Plot("SPY", "Price", spy.Security.Price);
 
                     //if (spy.VWAP_01 != 0) Plot("SPY VWAP", "01", spy.VWAP_01);
                     //if (spy.VWAP_02 != 0) Plot("SPY VWAP", "02", spy.VWAP_02);
@@ -321,10 +291,19 @@ namespace QuantConnect.Algorithm.CSharp
 
 
                 // Validator
-                Plot("Validator", "Source1", Portfolio.TotalPortfolioValue);
+                //Plot("Validator", "Source1", Portfolio.TotalPortfolioValue);
 
-                var quant = Quants["Test"];
-                Plot("Validator", "Test1", quant.TotalPortfolioValue);
+                //var quant = Quants["Test"];
+                //Plot("Validator", "Test1", quant.TotalPortfolioValue);
+            }
+        }
+
+        private void PlotQuant()
+        {
+            foreach (var quant in Quants.Values)
+            {
+                if (quant.Plot)
+                    Plot("Quant Performance", quant.Tag, quant.Performance);
             }
         }
 
@@ -393,7 +372,7 @@ namespace QuantConnect.Algorithm.CSharp
             // Remove Securities from MyUniverse (cleanup unused securities)
             securities = "";
             var removedSymbols = MyUniverse.Keys
-                .Where(w => !TopUniverse.Keys.Contains(w))
+                .Where(w => !TopUniverse.Keys.Contains(w) && Quants.Values.Where(h => h.Holdings.ContainsKey(w)).SingleOrDefault() == null)
                 .ToArray();
             foreach (var symbol in removedSymbols)
                 MyUniverse.Remove(symbol);
@@ -431,6 +410,7 @@ namespace QuantConnect.Algorithm.CSharp
             {
                 Logger($"First Trade");
                 PlotCore();
+                PlotQuant();
             }
 
             if (core.MarketIsOpen() && !core.MarketOpenTime() && !core.MarketCloseTime(-1)) // Regular trade, not the first trade, not the last trade
@@ -448,6 +428,7 @@ namespace QuantConnect.Algorithm.CSharp
             {
                 Logger($"Market Close");
                 PlotCore();
+                PlotQuant();
             }
         }
     }

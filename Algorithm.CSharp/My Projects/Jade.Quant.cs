@@ -16,6 +16,8 @@ namespace QuantConnect.Algorithm.CSharp
     {
         private class Quant
         {
+            private decimal _initialCash = 0.00m;
+
             public string Tag = "";
             public decimal Cash = 0.00m;
             public Func<Quant, bool> QuantLogic;
@@ -49,10 +51,18 @@ namespace QuantConnect.Algorithm.CSharp
                 }
             }
 
-            // public decimal Return
+            public decimal Performance
+            {
+                get
+                {
+                    return ((TotalPortfolioValue - _initialCash) / _initialCash) * 100.00m;
+                }
+            }
 
             public Quant(string tag, decimal cash, Func<Quant, bool> quantLogic)
             {
+                _initialCash = cash;
+
                 Tag = tag;
                 Cash = cash;
                 QuantLogic = quantLogic;
@@ -227,7 +237,12 @@ namespace QuantConnect.Algorithm.CSharp
                 }
             }
 
-            // public void Liquidate()
+            public void Liquidate()
+            {
+                // Sell all
+                foreach (var holding in Holdings.Values.ToArray())
+                    MarketOrder(holding.UniverseItem.Security.Symbol.Value, -holding.InvestedQuantity);
+            }
 
             private void OnTick()
             {
