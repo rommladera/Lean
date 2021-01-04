@@ -238,7 +238,8 @@ namespace QuantConnect.Algorithm.CSharp
 
         public void Logger(string message)
         {
-            // Debug($",{Time}, {message}");
+            if (LiveMode)
+                Debug($",{Time}, {message}");
         }
 
         private bool MarketOpenTime(int minutes = 0)
@@ -372,7 +373,7 @@ namespace QuantConnect.Algorithm.CSharp
             // Remove Securities from MyUniverse (cleanup unused securities)
             securities = "";
             var removedSymbols = MyUniverse.Keys
-                .Where(w => !TopUniverse.Keys.Contains(w) && Quants.Values.Where(h => h.Holdings.ContainsKey(w)).SingleOrDefault() == null)
+                .Where(w => !TopUniverse.Keys.Contains(w) && Quants.Values.Where(h => h.Holdings.ContainsKey(w)).FirstOrDefault() == null)
                 .ToArray();
             foreach (var symbol in removedSymbols)
                 MyUniverse.Remove(symbol);
