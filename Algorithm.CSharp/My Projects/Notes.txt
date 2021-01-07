@@ -31,9 +31,6 @@
 
 
 
--Add daily winner
-
-
 Quantconnect:
 User ID: 83300
 Token: 143dcf7ff5a12e87a2c2ff8b2a44e5882bc3cecb6290c54c5f5ce8e22ed46093

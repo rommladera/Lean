@@ -162,6 +162,7 @@
     <Compile Include="My Projects\Jade.QuantConfig.cs" />
     <Compile Include="My Projects\Jade.Quant.cs" />
     <Compile Include="My Projects\Jade.UniverseType.cs" />
+    <Compile Include="My Projects\Reference\ResistanceTransdimensionalSplitter.cs" />
     <Compile Include="OnOrderEventExceptionRegression.cs" />
     <Compile Include="FutureOptionCallITMExpiryRegressionAlgorithm.cs" />
     <Compile Include="FutureOptionCallOTMExpiryRegressionAlgorithm.cs" />

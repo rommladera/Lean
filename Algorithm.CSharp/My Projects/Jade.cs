@@ -48,174 +48,6 @@ namespace QuantConnect.Algorithm.CSharp
             AddUniverse(Universe.DollarVolume.Top(10));
             AddEquity("SPY", Resolution.Minute); // Always add SPY
 
-            //#region SPY
-            //var TestQuant = new Quant("SPY-A",
-            //    q =>
-            //    {
-            //        if (core.MarketOpenTime(-1)) // Before First trade
-            //        {
-            //        }
-
-            //        if (core.MarketOpenTime()) // First trade
-            //        {
-            //            q.SetHoldings("SPY", PercentRisk);
-            //        }
-
-            //        if (core.MarketIsOpen() && !core.MarketOpenTime() && !core.MarketCloseTime(-1)) // Regular trade, not the first trade, not the last trade
-            //        {
-            //        }
-
-            //        if (core.MarketCloseTime(-1)) // Last trade
-            //        {
-            //        }
-
-            //        if (core.MarketCloseTime()) // After Last Trade/First Close
-            //        {
-            //        }
-
-            //        return true;
-            //    });
-            //TestQuant.Plot = true;
-            //TestQuant.Live = false;
-            //Quants.Add(TestQuant.Tag, TestQuant);
-
-            //TestQuant = new Quant("SPY-B",
-            //    q =>
-            //    {
-            //        if (core.MarketOpenTime(-1)) // Before First trade
-            //        {
-            //        }
-
-            //        if (core.MarketOpenTime()) // First trade
-            //        {
-            //            q.SetHoldings("SPY", PercentRisk);
-            //        }
-
-            //        if (core.MarketIsOpen() && !core.MarketOpenTime() && !core.MarketCloseTime(-1)) // Regular trade, not the first trade, not the last trade
-            //        {
-
-            //        }
-
-            //        if (core.MarketCloseTime(-1)) // Last trade
-            //        {
-            //            q.Liquidate();
-            //        }
-
-            //        if (core.MarketCloseTime()) // After Last Trade/First Close
-            //        {
-            //        }
-
-            //        return true;
-            //    });
-            //TestQuant.Plot = true;
-            //TestQuant.Live = false;
-            //Quants.Add(TestQuant.Tag, TestQuant);
-            //#endregion
-
-            //#region Live
-            //TestQuant = new Quant("Live",
-            //    q =>
-            //    {
-            //        if (core.MarketOpenTime()) // First trade
-            //        {
-            //            var item = MyUniverse.Values
-            //                .Where(w => w.Security.HasData)
-            //                .OrderByDescending(o => o.MOMP_Daily_01)
-            //                .Take(1)
-            //                .SingleOrDefault();
-
-            //            if (item != null)
-            //                q.SetHoldings(item.Security.Symbol.Value, PercentRisk);
-            //        }
-
-            //        if (core.MarketCloseTime(-1)) // Last trade
-            //        {
-            //            q.Liquidate();
-            //        }
-
-            //        return true;
-            //    });
-            //TestQuant.Plot = true;
-            //Quants.Add(TestQuant.Tag, TestQuant);
-
-            //TestQuant = new Quant("Test",
-            //    q =>
-            //    {
-            //        if (core.MarketOpenTime()) // First trade
-            //        {
-            //            var item = MyUniverse.Values
-            //                .Where(w => w.Security.HasData)
-            //                .OrderByDescending(o => o.MOMP_Daily_01)
-            //                .Take(1)
-            //                .SingleOrDefault();
-
-            //            if (item != null)
-            //                q.SetHoldings(item.Security.Symbol.Value, PercentRisk);
-            //        }
-
-            //        if (core.MarketCloseTime(-1)) // Last trade
-            //        {
-            //            q.Liquidate();
-            //        }
-
-            //        return true;
-            //    });
-            //TestQuant.Plot = true;
-            //Quants.Add(TestQuant.Tag, TestQuant);
-            //#endregion
-
-            //#region Test Quants
-            //TestQuant = new Quant("A",
-            //    q =>
-            //    {
-            //        if (core.MarketOpenTime()) // First trade
-            //        {
-            //            var item = MyUniverse.Values
-            //                .Where(w => w.Security.HasData)
-            //                .OrderByDescending(o => o.MOMP_Daily_01)
-            //                .Take(1)
-            //                .SingleOrDefault();
-
-            //            if (item != null)
-            //                q.SetHoldings(item.Security.Symbol.Value, PercentRisk);
-            //        }
-
-            //        if (core.MarketCloseTime(-1)) // Last trade
-            //        {
-            //            q.Liquidate();
-            //        }
-
-            //        return true;
-            //    });
-            //TestQuant.Plot = false;
-            //Quants.Add(TestQuant.Tag, TestQuant);
-
-            //TestQuant = new Quant("B",
-            //    q =>
-            //    {
-            //        if (core.MarketOpenTime()) // First trade
-            //        {
-            //            var item = MyUniverse.Values
-            //                .Where(w => w.Security.HasData)
-            //                .OrderBy(o => o.MOMP_Daily_01)
-            //                .Take(1)
-            //                .SingleOrDefault();
-
-            //            if (item != null)
-            //                q.SetHoldings(item.Security.Symbol.Value, PercentRisk);
-            //        }
-
-            //        if (core.MarketCloseTime(-1)) // Last trade
-            //        {
-            //            q.Liquidate();
-            //        }
-
-            //        return true;
-            //    });
-            //TestQuant.Plot = false;
-            //Quants.Add(TestQuant.Tag, TestQuant);
-            //#endregion
-
             QuantConfig();
 
             SetWarmUp(TimeSpan.FromDays(40));
@@ -230,7 +62,13 @@ namespace QuantConnect.Algorithm.CSharp
             Schedule.On(DateRules.EveryDay(), TimeRules.Every(TimeSpan.FromMinutes(10)), () =>
             {
                 if (IsWarmingUp) return;
-                if (LiveMode) Logger($"Hello");
+                if (LiveMode)
+                {
+                    Logger($"Hello");
+                    foreach (var quant in Quants.Values)
+                        if (quant.Live)
+                            Logger($"Quant {quant.Tag} Hello");
+                }
             });
 
             Logger($"{this.GetType().Name} Initialized");
@@ -328,15 +166,6 @@ namespace QuantConnect.Algorithm.CSharp
                 }
             }
             if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Logger($"My Universe added {securities}");
-
-            //var symbols = changes.AddedSecurities.OrderBy(o => o.Symbol)
-            //    .Where(w => !MyUniverse.ContainsKey(w.Symbol.Value))
-            //    .ToArray();
-            //foreach (var symbol in symbols)
-            //    MyUniverse.Add(symbol.Symbol.Value, new UniverseType(symbol));
-            //var symbolsJoined = String.Join(",", symbols.Select(s => s.Symbol.Value).ToArray());
-            //if ((LiveMode || LocalDevMode || ShowDebug) && symbolsJoined != "") Logger($"My Universe added {symbolsJoined}");
-
 
             // Process TopUniverse referencing MyUniverse
             securities = "";
