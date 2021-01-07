@@ -1,7 +1,15 @@
 ﻿TODO:
 
+-Add Quant properties
+	-Winrate
+
+-At the end of the day, log winner of Winrate and winner of TotalPerformance
+
 -- Add plot lines so we can see who wins
 	-Daily Performance
+
+
+
 
 
 *-Match debug data to see if the same calculations
@@ -21,8 +29,7 @@
 -Check Momentum Values, where does daily open and close
 	-Check files and see if you can find out (Files didn't work)
 
--Add Quant properties
-	-Winrate
+
 
 -Add daily winner
 
