@@ -72,6 +72,14 @@ namespace QuantConnect.Algorithm.CSharp
                     if (core.IsWarmingUp) return;
                     OnTick();
                 });
+
+                // Hello ping
+                core.Schedule.On(core.DateRules.EveryDay(), core.TimeRules.Every(TimeSpan.FromMinutes(10)), () =>
+                {
+                    if (core.IsWarmingUp) return;
+                    if (core.LiveMode)
+                        core.Logger($"Quant {Tag} Hello");
+                });
             }
 
             public void SetHoldings(string symbol, decimal percentage)

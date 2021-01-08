@@ -63,12 +63,7 @@ namespace QuantConnect.Algorithm.CSharp
             {
                 if (IsWarmingUp) return;
                 if (LiveMode)
-                {
                     Logger($"Hello");
-                    foreach (var quant in Quants.Values)
-                        if (quant.Live)
-                            Logger($"Quant {quant.Tag} Hello");
-                }
             });
 
             Logger($"{this.GetType().Name} Initialized");
