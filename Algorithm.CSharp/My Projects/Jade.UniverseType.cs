@@ -22,6 +22,7 @@ namespace QuantConnect.Algorithm.CSharp
             public MomentumPercent MOMP_Minute_01, MOMP_Minute_02, MOMP_Minute_04, MOMP_Minute_08, MOMP_Minute_16;
             public MomentumPercent MOMP_Daily_01, MOMP_Daily_05, MOMP_Daily_10, MOMP_Daily_20, MOMP_Daily_40;
             public ExponentialMovingAverage EMA_Minute_02, EMA_Minute_04, EMA_Minute_08, EMA_Minute_16;
+            public RelativeStrengthIndex RSI_01, RSI_02, RSI_04, RSI_08, RSI_16;
 
             public UniverseType(Security security)
             {
@@ -50,6 +51,12 @@ namespace QuantConnect.Algorithm.CSharp
                 EMA_Minute_08 = core.EMA(security.Symbol, 8, Resolution.Minute);
                 EMA_Minute_16 = core.EMA(security.Symbol, 16, Resolution.Minute);
 
+                RSI_01 = core.RSI(security.Symbol, 1, MovingAverageType.Exponential, Resolution.Minute);
+                RSI_02 = core.RSI(security.Symbol, 2, MovingAverageType.Exponential, Resolution.Minute);
+                RSI_04 = core.RSI(security.Symbol, 4, MovingAverageType.Exponential, Resolution.Minute);
+                RSI_08 = core.RSI(security.Symbol, 8, MovingAverageType.Exponential, Resolution.Minute);
+                RSI_16 = core.RSI(security.Symbol, 16, MovingAverageType.Exponential, Resolution.Minute);
+
                 var hist = core.History(security.Symbol, 16, Resolution.Minute);
                 foreach (var bar in hist)
                 {
@@ -63,6 +70,12 @@ namespace QuantConnect.Algorithm.CSharp
                     EMA_Minute_04.Update(bar.EndTime, bar.Close);
                     EMA_Minute_08.Update(bar.EndTime, bar.Close);
                     EMA_Minute_16.Update(bar.EndTime, bar.Close);
+
+                    RSI_01.Update(bar.EndTime, bar.Close);
+                    RSI_02.Update(bar.EndTime, bar.Close);
+                    RSI_04.Update(bar.EndTime, bar.Close);
+                    RSI_08.Update(bar.EndTime, bar.Close);
+                    RSI_16.Update(bar.EndTime, bar.Close);
                 }
 
                 hist = core.History(security.Symbol, 40, Resolution.Daily);
