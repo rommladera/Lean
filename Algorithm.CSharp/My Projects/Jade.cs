@@ -254,6 +254,31 @@ namespace QuantConnect.Algorithm.CSharp
                 Logger($"Market Close");
                 PlotCore();
                 PlotQuant();
+
+                // Pick Winner
+                var quantPerformance = (Quants != null && Quants.Values.Count > 0)
+                    ? Quants.Values
+                        .OrderByDescending(o => o.Performance)
+                        .FirstOrDefault()
+                    : null;
+
+                var quantWinRate = (Quants != null && Quants.Values.Count > 0)
+                    ? Quants.Values
+                        .OrderByDescending(o => o.WinRate)
+                        .FirstOrDefault()
+                    : null;
+
+                if (quantPerformance != null)
+                {
+                    Logger($"Top Performance {quantPerformance.Tag}, Performance {Decimal.Round(quantPerformance.Performance, 4)}, WinRate {Decimal.Round(quantPerformance.WinRate, 4)}");
+                    Debug($",{Time}, Top Performance {quantPerformance.Tag}, Performance {Decimal.Round(quantPerformance.Performance, 4)}, WinRate {Decimal.Round(quantPerformance.WinRate, 4)}");
+                }
+
+                if (quantWinRate != null)
+                {
+                    Logger($"Top Performance {quantPerformance.Tag}, Performance {Decimal.Round(quantPerformance.Performance, 4)}, WinRate {Decimal.Round(quantPerformance.WinRate, 4)}");
+                    Debug($",{Time}, Top WinRate {quantPerformance.Tag}, WinRate {Decimal.Round(quantWinRate.WinRate, 4)}, Performance {Decimal.Round(quantWinRate.Performance, 4)}");
+                }
             }
         }
     }

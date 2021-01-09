@@ -9,22 +9,14 @@
 	-Daily Performance
 
 
-
-
-
 *-Match debug data to see if the same calculations
 *-Plot Porfolio Performance
 *-Plot Quant Performance, so you can match with Portfolio
 
 	Plot data and debug are almost the same with very few discrepancy.  Don't know why price is slight slightly different.
 
-
-
-
 -Debug show holdings, either beginning of day or eod or both
 -Add LoggingOn property
-
-
 
 -Check Momentum Values, where does daily open and close
 	-Check files and see if you can find out (Files didn't work)

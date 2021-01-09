@@ -32,8 +32,9 @@ namespace QuantConnect.Algorithm.CSharp
             //public int InvestedQuantity = 0;
             //public decimal InvestmentBoughtPrice, InvestmentSoldPrice;
 
-            public int TotalOrders = 0;
+            public int TotalSells = 0;
             public int TotalWins = 0;
+
 
             public decimal TotalHoldingsValue
             {
@@ -56,6 +57,16 @@ namespace QuantConnect.Algorithm.CSharp
                 get
                 {
                     return ((TotalPortfolioValue - _initialCash) / _initialCash) * 100.00m;
+                }
+            }
+
+            public decimal WinRate
+            {
+                get
+                {
+                    return (TotalSells == 0)
+                        ? 0
+                        : ((decimal)TotalWins / (decimal)TotalSells) * 100.00m;
                 }
             }
 
@@ -224,7 +235,8 @@ namespace QuantConnect.Algorithm.CSharp
 
                     var holding = Holdings[symbol];
 
-                    TotalOrders++;
+                    // TotalOrders++;
+                    TotalSells++;
                     TotalWins += (holding.AverageBoughtPrice < soldPrice) ? 1 : 0;
                     Cash += soldTotalPrice;
 
