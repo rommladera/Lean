@@ -28,10 +28,6 @@ namespace QuantConnect.Algorithm.CSharp
 
             public Dictionary<string, HoldingType> Holdings = new Dictionary<string, HoldingType>();
 
-            //public UniverseType InvestedUniverse = null;
-            //public int InvestedQuantity = 0;
-            //public decimal InvestmentBoughtPrice, InvestmentSoldPrice;
-
             public int TotalSells = 0;
             public int TotalWins = 0;
 

@@ -1,4 +1,5 @@
-﻿using QuantConnect.Brokerages;
+﻿using Accord.Math;
+using QuantConnect.Brokerages;
 using QuantConnect.Data.UniverseSelection;
 using QuantConnect.Indicators;
 using QuantConnect.Orders;
@@ -19,8 +20,7 @@ namespace QuantConnect.Algorithm.CSharp
         private bool LocalDevMode = System.Diagnostics.Debugger.IsAttached;
         private bool ShowDebug = true;
         private decimal StartingCash = 100000.00m;
-        private decimal PercentRisk = 0.05m;
-        private EquityExchange Market = new EquityExchange();
+        public EquityExchange Market = new EquityExchange();
 
         private Dictionary<string, UniverseType> MyUniverse = new Dictionary<string, UniverseType>();
         private Dictionary<string, UniverseType> TopUniverse = new Dictionary<string, UniverseType>();
@@ -35,7 +35,9 @@ namespace QuantConnect.Algorithm.CSharp
             SetBrokerageModel(BrokerageName.Alpaca, AccountType.Margin);
             SetTimeZone(TimeZones.NewYork);
             SetCash(StartingCash);
+            // SetStartDate(DateTime.Now.AddDays(-192).Date);
             SetStartDate(DateTime.Now.AddDays(-38).Date);
+            // SetStartDate(DateTime.Now.AddDays(-17).Date);
             SetEndDate(DateTime.Now.AddDays(-10).Date);
 
             if (LocalDevMode)
@@ -69,10 +71,11 @@ namespace QuantConnect.Algorithm.CSharp
             Logger($"{this.GetType().Name} Initialized");
         }
 
-        public void Logger(string message)
+        public void Logger(string message, bool forcedLog = false)
         {
-            if (LiveMode)
-                Debug($",{Time}, {message}");
+            if (LiveMode || forcedLog)
+                if (Time >= DateTime.Now.AddDays(-16).Date)
+                    Debug($",{Time}, {message}");
         }
 
         private bool MarketOpenTime(int minutes = 0)
@@ -92,6 +95,16 @@ namespace QuantConnect.Algorithm.CSharp
 
         private void PlotCore()
         {
+            if (LiveMode)
+            {
+                // Plot Portfolio
+                if (Portfolio.TotalPortfolioValue > 0)
+                {
+                    Plot("Portfolio Value", "$", Portfolio.TotalPortfolioValue);
+                    Plot("Portfolio Performance", "%", (Portfolio.TotalProfit / Portfolio.TotalPortfolioValue) * 100.00m);
+                }
+            }
+
             if (MyUniverse.Keys.Contains("SPY"))
             {
                 var spy = MyUniverse["SPY"];
@@ -100,6 +113,7 @@ namespace QuantConnect.Algorithm.CSharp
                 {
                     // Plot("SPY", "Price", spy.Security.Price);
 
+                    //Plot("SPY VWAP", "Price", spy.Security.Price);
                     //if (spy.VWAP_01 != 0) Plot("SPY VWAP", "01", spy.VWAP_01);
                     //if (spy.VWAP_02 != 0) Plot("SPY VWAP", "02", spy.VWAP_02);
                     //if (spy.VWAP_04 != 0) Plot("SPY VWAP", "04", spy.VWAP_04);
@@ -119,16 +133,11 @@ namespace QuantConnect.Algorithm.CSharp
                     //Plot("MOMP Daily", "40", spy.MOMP_Daily_40);
                 }
 
-                // Plot Portfolio
-                // Plot("Portfolio", "TotalPortfolioValue", Portfolio.TotalPortfolioValue);
-
-
-
-                // Validator
+                //// Validator
                 //Plot("Validator", "Source1", Portfolio.TotalPortfolioValue);
 
                 //var quant = Quants["Test"];
-                //Plot("Validator", "Test1", quant.TotalPortfolioValue);
+                //Plot("Validator", "Test", quant.TotalPortfolioValue);
             }
         }
 
@@ -137,7 +146,10 @@ namespace QuantConnect.Algorithm.CSharp
             foreach (var quant in Quants.Values)
             {
                 if (quant.Plot)
+                {
                     Plot("Quant Performance", quant.Tag, quant.Performance);
+                    Plot("Quant WinRate", quant.Tag, quant.WinRate);
+                }
             }
         }
 
@@ -219,8 +231,6 @@ namespace QuantConnect.Algorithm.CSharp
             var tags = order.Tag.Split('|');
             var tag = tags[0];
 
-            // var quant = Quants[tag];
-
             core.Logger($"Quant {tag}, OrderEvent {orderEvent.Symbol.Value}, {orderEvent.Status}, {orderEvent.FillQuantity}, {orderEvent.FillPrice}");
         }
 
@@ -256,29 +266,25 @@ namespace QuantConnect.Algorithm.CSharp
                 PlotQuant();
 
                 // Pick Winner
-                var quantPerformance = (Quants != null && Quants.Values.Count > 0)
+                var quantPerformances = (Quants != null && Quants.Values.Count > 0)
                     ? Quants.Values
                         .OrderByDescending(o => o.Performance)
-                        .FirstOrDefault()
+                        .Take(3)
                     : null;
 
-                var quantWinRate = (Quants != null && Quants.Values.Count > 0)
+                var quantWinRates = (Quants != null && Quants.Values.Count > 0)
                     ? Quants.Values
                         .OrderByDescending(o => o.WinRate)
-                        .FirstOrDefault()
+                        .Take(3)
                     : null;
 
-                if (quantPerformance != null)
-                {
-                    Logger($"Top Performance {quantPerformance.Tag}, Performance {Decimal.Round(quantPerformance.Performance, 4)}, WinRate {Decimal.Round(quantPerformance.WinRate, 4)}");
-                    Debug($",{Time}, Top Performance {quantPerformance.Tag}, Performance {Decimal.Round(quantPerformance.Performance, 4)}, WinRate {Decimal.Round(quantPerformance.WinRate, 4)}");
-                }
+                foreach (var quantPerformance in quantPerformances)
+                    if (quantPerformance != null)
+                        Logger($"Top Performance {quantPerformance.Tag}, Performance {Decimal.Round(quantPerformance.Performance, 4)}, WinRate {Decimal.Round(quantPerformance.WinRate, 4)}", true);
 
-                if (quantWinRate != null)
-                {
-                    Logger($"Top Performance {quantPerformance.Tag}, Performance {Decimal.Round(quantPerformance.Performance, 4)}, WinRate {Decimal.Round(quantPerformance.WinRate, 4)}");
-                    Debug($",{Time}, Top WinRate {quantPerformance.Tag}, WinRate {Decimal.Round(quantWinRate.WinRate, 4)}, Performance {Decimal.Round(quantWinRate.Performance, 4)}");
-                }
+                foreach (var quantWinRate in quantWinRates)
+                    if (quantWinRate != null)
+                        Logger($"Top Winrate {quantWinRate.Tag}, WinRate {Decimal.Round(quantWinRate.WinRate, 4)}, Performance {Decimal.Round(quantWinRate.Performance, 4)}", true);
             }
         }
     }

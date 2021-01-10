@@ -66,7 +66,7 @@ namespace QuantConnect.Algorithm.CSharp
             // Quants.Add(TestQuant.Tag, TestQuant);
 
             TestQuant = new Quant(
-                "10AB",
+                "10A",
                 5000.00m, // Initial Cash
                 q =>
                 {
@@ -75,7 +75,6 @@ namespace QuantConnect.Algorithm.CSharp
                         // Select Item
                         var item = TopUniverse.Values
                             .Where(w => w.Security.HasData)
-                            .Where(w => w.MOMP_Minute_01 > 0)
                             .OrderByDescending(o => o.MOMP_Daily_10)
                             .Take(1)
                             .SingleOrDefault();
@@ -93,14 +92,9 @@ namespace QuantConnect.Algorithm.CSharp
                         }
                         else
                         {
-                            Logger("No security selected.");
+                            Logger("No security selected. Liquidating all.");
+                            q.Liquidate();
                         }
-                    }
-
-                    if (core.MarketCloseTime(-1)) // Last trade
-                    {
-                        Logger("Liquidating all.");
-                        q.Liquidate();
                     }
 
                     return true;
@@ -109,9 +103,54 @@ namespace QuantConnect.Algorithm.CSharp
             TestQuant.Live = true;
             Quants.Add(TestQuant.Tag, TestQuant);
 
-
-
             #region Quant Tests
+
+            //TestQuant = new Quant(
+            //    "10A-N",
+            //    5000.00m, // Initial Cash
+            //    q =>
+            //    {
+            //        if (core.MarketOpenTime()) // First trade
+            //        {
+            //            // Select Item
+            //            var item = TopUniverse.Values
+            //                .Where(w => w.Security.HasData)
+            //                .OrderByDescending(o => o.MOMP_Daily_10)
+            //                .Take(1)
+            //                .SingleOrDefault();
+
+            //            if (item != null)
+            //            {
+            //                var symbol = item.Security.Symbol.Value;
+            //                Logger($"Security {symbol} selected.");
+
+            //                if (!q.Holdings.ContainsKey(symbol))
+            //                {
+            //                    q.Liquidate();
+            //                    q.SetHoldings(symbol, 1.00m);
+            //                }
+            //            }
+            //            else
+            //            {
+            //                Logger("No security selected. Liquidating all.");
+            //                q.Liquidate();
+            //            }
+            //        }
+
+            //        if (core.MarketCloseTime(-1)) // Last trade
+            //        {
+            //            Logger($"Last Trade");
+            //            if (!core.Market.DateIsOpen(core.Time.AddDays(1))) // If not open next day?
+            //            {
+            //                q.Liquidate();
+            //            }
+            //        }
+
+            //        return true;
+            //    });
+            //TestQuant.Plot = true;
+            //TestQuant.Live = false;
+            //Quants.Add(TestQuant.Tag, TestQuant);
 
             //TestQuant = new Quant(
             //    "01A",
@@ -369,54 +408,96 @@ namespace QuantConnect.Algorithm.CSharp
             //TestQuant.Live = false;
             //Quants.Add(TestQuant.Tag, TestQuant);
 
+            //TestQuant = new Quant(
+            //    "10A-M02",
+            //    5000.00m, // Initial Cash
+            //    q =>
+            //    {
+            //        UniverseType topPerformer = null;
 
+            //        if (core.MarketOpenTime()) // First trade
+            //        {
+            //            // Select Item Top Performer
+            //            topPerformer = TopUniverse.Values
+            //                .Where(w => w.Security.HasData)
+            //                .OrderByDescending(o => o.MOMP_Daily_10)
+            //                .Take(1)
+            //                .SingleOrDefault();
 
+            //            if (topPerformer != null)
+            //            {
+            //                Logger($"Security {topPerformer.Security.Symbol.Value} selected.");
+            //            }
+            //            else
+            //            {
+            //                Logger("No security selected. Liquidating all.");
+            //                q.Liquidate();
+            //            }
+            //        }
+
+            //        if (core.MarketIsOpen()) // Regular trade
+            //        {
+            //            if (topPerformer != null)
+            //            {
+            //                if (!q.Holdings.ContainsKey(topPerformer.Security.Symbol.Value)) // already owned
+            //                {
+            //                    if (topPerformer.MOMP_Minute_02 > 0) // Wait until MOMP is positive to buy
+            //                    {
+            //                        q.Liquidate();
+            //                        q.SetHoldings(topPerformer.Security.Symbol.Value, 1.00m);
+            //                    }
+            //                }
+            //            }
+
+            //        }
+
+            //        return true;
+            //    });
+            //TestQuant.Plot = true;
+            //TestQuant.Live = false;
+            //Quants.Add(TestQuant.Tag, TestQuant);
 
             //TestQuant = new Quant(
-            //     "10A",
-            //     10000.00m, // Initial Cash
-            //     q =>
-            //     {
-            //         if (core.MarketOpenTime()) // First trade
-            //         {
-            //             // Select Item
-            //             var item = TopUniverse.Values
-            //                  .Where(w => w.Security.HasData)
-            //                  .OrderByDescending(o => o.MOMP_Daily_10)
-            //                  .Take(1)
-            //                  .SingleOrDefault();
+            //    "10A",
+            //    5000.00m, // Initial Cash
+            //    q =>
+            //    {
+            //        if (core.MarketOpenTime()) // First trade
+            //        {
+            //            // Select Item
+            //            var item = TopUniverse.Values
+            //                .Where(w => w.Security.HasData)
+            //                .OrderByDescending(o => o.MOMP_Daily_10)
+            //                .Take(1)
+            //                .SingleOrDefault();
 
-            //             if (item != null)
-            //             {
-            //                 var symbol = item.Security.Symbol.Value;
-            //                 Logger($"Security {symbol} selected.");
+            //            if (item != null)
+            //            {
+            //                var symbol = item.Security.Symbol.Value;
+            //                Logger($"Security {symbol} selected.");
 
-            //                 if (!q.Holdings.ContainsKey(symbol))
-            //                 {
-            //                     q.Liquidate();
-            //                     q.SetHoldings(symbol, 1.00m);
-            //                 }
-            //             }
-            //             else
-            //             {
-            //                 Logger("No security selected. Liquidating all.");
-            //                 q.Liquidate();
-            //             }
-            //         }
+            //                if (!q.Holdings.ContainsKey(symbol))
+            //                {
+            //                    q.Liquidate();
+            //                    q.SetHoldings(symbol, 1.00m);
+            //                }
+            //            }
+            //            else
+            //            {
+            //                Logger("No security selected. Liquidating all.");
+            //                q.Liquidate();
+            //            }
+            //        }
 
-            //         if (core.MarketCloseTime(-1)) // Last trade
-            //         {
-            //         }
-
-            //         return true;
-            //     });
+            //        return true;
+            //    });
             //TestQuant.Plot = true;
             //TestQuant.Live = false;
             //Quants.Add(TestQuant.Tag, TestQuant);
 
             //TestQuant = new Quant(
             //    "10B",
-            //    10000.00m, // Initial Cash
+            //    5000.00m, // Initial Cash
             //    q =>
             //    {
             //        if (core.MarketOpenTime()) // First trade
@@ -452,7 +533,7 @@ namespace QuantConnect.Algorithm.CSharp
 
             //        return true;
             //    });
-            //TestQuant.Plot = true;
+            //TestQuant.Plot = false;
             //TestQuant.Live = false;
             //Quants.Add(TestQuant.Tag, TestQuant);
 
