@@ -1,5 +1,6 @@
 ﻿TODO:
 
+-- Use VWAP B/S at 1, 2, 4, 8, 16
 
 Quantconnect:
 User ID: 83300

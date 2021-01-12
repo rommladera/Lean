@@ -54,18 +54,18 @@ namespace QuantConnect.Algorithm.CSharp
 
             SetWarmUp(TimeSpan.FromDays(40));
 
+            // Every Minute
             Schedule.On(DateRules.EveryDay(), TimeRules.Every(TimeSpan.FromMinutes(1)), () =>
             {
                 if (IsWarmingUp) return;
                 OnTick();
             });
 
-            // Hello ping
+            // Every 10 minutes
             Schedule.On(DateRules.EveryDay(), TimeRules.Every(TimeSpan.FromMinutes(10)), () =>
             {
                 if (IsWarmingUp) return;
-                if (LiveMode)
-                    Logger($"Hello");
+                OnTick10();
             });
 
             Logger($"{this.GetType().Name} Initialized");
@@ -285,6 +285,17 @@ namespace QuantConnect.Algorithm.CSharp
                 foreach (var quantWinRate in quantWinRates)
                     if (quantWinRate != null)
                         Logger($"Top Winrate {quantWinRate.Tag}, WinRate {Decimal.Round(quantWinRate.WinRate, 4)}, Performance {Decimal.Round(quantWinRate.Performance, 4)}", true);
+            }
+        }
+
+        private void OnTick10()
+        {
+            if (LiveMode)
+                Logger($"Hello");
+
+            if (!MarketIsOpen())
+            {
+                PlotCore();
             }
         }
     }
