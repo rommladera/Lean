@@ -115,7 +115,7 @@ namespace QuantConnect.Algorithm.CSharp
                 var targetValue = TotalPortfolioValue * percentage;
                 core.Logger($"Quant {Tag}, TotalHoldingsValue={TotalHoldingsValue}, TotalPortfolioValue={TotalPortfolioValue}, targetValue={targetValue}");
 
-                // If we currently have it, find the price to adust, and determine how many quantity to get there
+                // If we currently have it, find the price to adjust, and determine how many quantity to get there
                 decimal price;
                 int quantityAdjust;
                 var totalHoldingValue = Holdings.Values
@@ -126,6 +126,7 @@ namespace QuantConnect.Algorithm.CSharp
                 if (targetAdjustValue == 0)
                 {
                     // Already there
+                    core.Logger($"Quant {Tag}, Already have enough in holding");
                     return;
                 }
                 else if (targetAdjustValue > 0)

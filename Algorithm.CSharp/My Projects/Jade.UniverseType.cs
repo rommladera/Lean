@@ -57,7 +57,7 @@ namespace QuantConnect.Algorithm.CSharp
                 RSI_08 = core.RSI(security.Symbol, 8, MovingAverageType.Exponential, Resolution.Minute);
                 RSI_16 = core.RSI(security.Symbol, 16, MovingAverageType.Exponential, Resolution.Minute);
 
-                var hist = core.History(security.Symbol, 16, Resolution.Minute);
+                var hist = core.History(security.Symbol, 32, Resolution.Minute);
                 foreach (var bar in hist)
                 {
                     MOMP_Minute_01.Update(bar.EndTime, bar.Close);

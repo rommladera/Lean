@@ -21,6 +21,7 @@ namespace QuantConnect.Algorithm.CSharp
         private bool ShowDebug = true;
         private decimal StartingCash = 100000.00m;
         public EquityExchange Market = new EquityExchange();
+        private UniverseType SPY = null;
 
         private Dictionary<string, UniverseType> MyUniverse = new Dictionary<string, UniverseType>();
         private Dictionary<string, UniverseType> TopUniverse = new Dictionary<string, UniverseType>();
@@ -38,7 +39,9 @@ namespace QuantConnect.Algorithm.CSharp
             // SetStartDate(DateTime.Now.AddDays(-192).Date);
             SetStartDate(DateTime.Now.AddDays(-38).Date);
             // SetStartDate(DateTime.Now.AddDays(-17).Date);
+            // SetEndDate(DateTime.Now.AddDays(-32).Date); // RCL
             SetEndDate(DateTime.Now.AddDays(-10).Date);
+
 
             if (LocalDevMode)
             {
@@ -48,11 +51,14 @@ namespace QuantConnect.Algorithm.CSharp
 
             UniverseSettings.Resolution = Resolution.Minute;
             AddUniverse(Universe.DollarVolume.Top(10));
+
             AddEquity("SPY", Resolution.Minute); // Always add SPY
+            SPY = new UniverseType(Securities["SPY"]);
+            MyUniverse.Add("SPY", SPY);
 
             QuantConfig();
 
-            SetWarmUp(TimeSpan.FromDays(40));
+            SetWarmUp(TimeSpan.FromDays(50));
 
             // Every Minute
             Schedule.On(DateRules.EveryDay(), TimeRules.Every(TimeSpan.FromMinutes(1)), () =>
@@ -74,8 +80,7 @@ namespace QuantConnect.Algorithm.CSharp
         public void Logger(string message, bool forcedLog = false)
         {
             if (LiveMode || forcedLog)
-                if (Time >= DateTime.Now.AddDays(-16).Date)
-                    Debug($",{Time}, {message}");
+                Debug($",{Time}, {message}");
         }
 
         private bool MarketOpenTime(int minutes = 0)
@@ -153,14 +158,30 @@ namespace QuantConnect.Algorithm.CSharp
             }
         }
 
+        private void LogIndicatorAndHistory()
+        {
+            Logger($"MOMP Minute,{Decimal.Round(SPY.MOMP_Minute_01, 4)},{Decimal.Round(SPY.MOMP_Minute_04, 4)},{Decimal.Round(SPY.MOMP_Minute_16, 4)}");
+            Logger($"MOMP Daily,{Decimal.Round(SPY.MOMP_Daily_01, 4)},{Decimal.Round(SPY.MOMP_Daily_10, 4)},{Decimal.Round(SPY.MOMP_Daily_40, 4)}");
+            Logger($"MOMP VWAP,{Decimal.Round(SPY.VWAP_01, 4)},{Decimal.Round(SPY.VWAP_04, 4)},{Decimal.Round(SPY.VWAP_16, 4)}");
+
+            var hist = core.History(SPY.Security.Symbol, 5, Resolution.Minute);
+            foreach (var bar in hist)
+                Logger($"History Minute,{bar.EndTime},{Decimal.Round(bar.Close, 4)}");
+
+            hist = core.History(SPY.Security.Symbol, 5, Resolution.Daily);
+            foreach (var bar in hist)
+                Logger($"History Daily,{bar.EndTime},{Decimal.Round(bar.Close, 4)}");
+        }
+
         public override void OnSecuritiesChanged(SecurityChanges changes)
         {
             // Process MyUniverse First (additions fist)
-            if (!MyUniverse.ContainsKey("SPY"))
-            {
-                if (LiveMode || LocalDevMode || ShowDebug) Logger($"My Universe added SPY");
-                MyUniverse.Add("SPY", new UniverseType(Securities["SPY"]));
-            }
+            //if (!MyUniverse.ContainsKey("SPY"))
+            //{
+            //    Logger($"SPY Added", true);
+            //    if (LiveMode || LocalDevMode || ShowDebug) Logger($"My Universe added SPY");
+            //    MyUniverse.Add("SPY", new UniverseType(Securities["SPY"]));
+            //}
 
             var securities = "";
             foreach (var security in changes.AddedSecurities.OrderBy(o => o.Symbol))
@@ -168,7 +189,7 @@ namespace QuantConnect.Algorithm.CSharp
                 var symbol = security.Symbol.Value;
                 if (!MyUniverse.ContainsKey(symbol))
                 {
-                    securities += (securities != "") ? "," + symbol : symbol;
+                    securities += $",{symbol}";
                     MyUniverse.Add(symbol, new UniverseType(security));
                 }
             }
@@ -181,7 +202,7 @@ namespace QuantConnect.Algorithm.CSharp
                 var symbol = security.Symbol.Value;
                 if (!TopUniverse.ContainsKey(symbol)) // necessary, this somehow causes runtime
                 {
-                    securities += (securities != "") ? "," + symbol : symbol;
+                    securities += $",{symbol}";
                     TopUniverse.Add(symbol, MyUniverse[symbol]);
                 }
             }
@@ -193,34 +214,32 @@ namespace QuantConnect.Algorithm.CSharp
                 var symbol = security.Symbol.Value;
                 if (TopUniverse.ContainsKey(symbol))
                 {
-                    securities += (securities != "") ? "," + symbol : symbol;
+                    securities += $",{symbol}";
                     TopUniverse.Remove(symbol);
                 }
             }
             if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Logger($"Top Universe removed {securities}");
 
             securities = "";
-            foreach (var security in TopUniverse.Keys.OrderBy(o => o))
-                securities += (securities != "") ? "," + security : security;
+            foreach (var security in TopUniverse.Values.OrderBy(o => o.Security.Symbol.Value))
+                securities += $",{security.Security.Symbol.Value}";
+            // securities += $",{security.Security.Symbol.Value}={Decimal.Round(security.MOMP_Daily_01, 4)}";
             if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Logger($"Top Universe {securities}");
-
-
 
             // Remove Securities from MyUniverse (cleanup unused securities)
             securities = "";
             var removedSymbols = MyUniverse.Keys
-                .Where(w => !TopUniverse.Keys.Contains(w) && Quants.Values.Where(h => h.Holdings.ContainsKey(w)).FirstOrDefault() == null)
+                .Where(w => w != "SPY" && !TopUniverse.Keys.Contains(w) && Quants.Values.Where(h => h.Holdings.ContainsKey(w)).FirstOrDefault() == null)
                 .ToArray();
             foreach (var symbol in removedSymbols)
                 MyUniverse.Remove(symbol);
             var symbolsJoined = String.Join(",", removedSymbols);
-            if ((LiveMode || LocalDevMode || ShowDebug) && symbolsJoined != "") Logger($"My Universe removed {symbolsJoined}");
+            if ((LiveMode || LocalDevMode || ShowDebug) && symbolsJoined != "") Logger($"My Universe removed ,{symbolsJoined}");
 
             securities = "";
             foreach (var security in MyUniverse.Keys.OrderBy(o => o))
-                securities += (securities != "") ? "," + security : security;
+                securities += $",{security}";
             if ((LiveMode || LocalDevMode || ShowDebug) && securities != "") Logger($"My Universe {securities}");
-
         }
 
         public override void OnOrderEvent(OrderEvent orderEvent)
@@ -239,6 +258,7 @@ namespace QuantConnect.Algorithm.CSharp
             if (core.MarketOpenTime(-1)) // Before First trade
             {
                 Logger($"Before Market Open");
+                LogIndicatorAndHistory();
             }
 
             if (core.MarketOpenTime()) // First trade
@@ -246,17 +266,20 @@ namespace QuantConnect.Algorithm.CSharp
                 Logger($"First Trade");
                 PlotCore();
                 PlotQuant();
+                LogIndicatorAndHistory();
             }
 
             if (core.MarketIsOpen() && !core.MarketOpenTime() && !core.MarketCloseTime(-1)) // Regular trade, not the first trade, not the last trade
             {
                 PlotCore();
+                LogIndicatorAndHistory();
             }
 
             if (core.MarketCloseTime(-1)) // Last trade
             {
                 Logger($"Last Trade");
                 PlotCore();
+                LogIndicatorAndHistory();
             }
 
             if (core.MarketCloseTime()) // After Last Trade/First Close
@@ -264,27 +287,38 @@ namespace QuantConnect.Algorithm.CSharp
                 Logger($"Market Close");
                 PlotCore();
                 PlotQuant();
+                LogIndicatorAndHistory();
 
-                // Pick Winner
-                var quantPerformances = (Quants != null && Quants.Values.Count > 0)
+                // Pick Winner only in the last few days
+                if (Time >= DateTime.Now.AddDays(-15).Date)
+                {
+                    var quantPerformances = (Quants != null && Quants.Values.Count > 0)
                     ? Quants.Values
                         .OrderByDescending(o => o.Performance)
                         .Take(3)
                     : null;
 
-                var quantWinRates = (Quants != null && Quants.Values.Count > 0)
-                    ? Quants.Values
-                        .OrderByDescending(o => o.WinRate)
-                        .Take(3)
-                    : null;
+                    if (quantPerformances != null)
+                        foreach (var quantPerformance in quantPerformances)
+                            if (quantPerformance != null)
+                                Logger($"Top Performance {quantPerformance.Tag}, Performance {Decimal.Round(quantPerformance.Performance, 4)}, WinRate {Decimal.Round(quantPerformance.WinRate, 4)}", true);
 
-                foreach (var quantPerformance in quantPerformances)
-                    if (quantPerformance != null)
-                        Logger($"Top Performance {quantPerformance.Tag}, Performance {Decimal.Round(quantPerformance.Performance, 4)}, WinRate {Decimal.Round(quantPerformance.WinRate, 4)}", true);
+                    var quantWinRates = (Quants != null && Quants.Values.Count > 0)
+                        ? Quants.Values
+                            .OrderByDescending(o => o.WinRate)
+                            .Take(3)
+                        : null;
 
-                foreach (var quantWinRate in quantWinRates)
-                    if (quantWinRate != null)
-                        Logger($"Top Winrate {quantWinRate.Tag}, WinRate {Decimal.Round(quantWinRate.WinRate, 4)}, Performance {Decimal.Round(quantWinRate.Performance, 4)}", true);
+                    if (quantWinRates != null)
+                        foreach (var quantWinRate in quantWinRates)
+                            if (quantWinRate != null)
+                                Logger($"Top Winrate {quantWinRate.Tag}, WinRate {Decimal.Round(quantWinRate.WinRate, 4)}, Performance {Decimal.Round(quantWinRate.Performance, 4)}", true);
+                }
+            }
+
+            if (core.MarketCloseTime(1)) // Second Close
+            {
+                LogIndicatorAndHistory();
             }
         }
 
@@ -294,9 +328,7 @@ namespace QuantConnect.Algorithm.CSharp
                 Logger($"Hello");
 
             if (!MarketIsOpen())
-            {
                 PlotCore();
-            }
         }
     }
 }

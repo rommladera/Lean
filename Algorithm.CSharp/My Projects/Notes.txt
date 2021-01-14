@@ -1,6 +1,19 @@
 ﻿TODO:
 
+- Update and Indicators seems to be wonky.
+
+*- Record live data, so we can comapre with backtest (every minute)
+*	- Record Indicator live value
+*	- Record History data (top 5?)
+	
+
+
+
 -- Use VWAP B/S at 1, 2, 4, 8, 16
+
+History Update is not working well, Check using actual absolute value to update/warm up indicator, and check SNOW
+
+.HasData is not working well. Not all securities are included
 
 Quantconnect:
 User ID: 83300
