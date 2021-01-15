@@ -308,10 +308,20 @@ namespace QuantConnect.Algorithm.CSharp
                 {
                     if (core.MarketOpenTime()) // First trade
                     {
-                        // Select Item
-                        var item = TopUniverse.Values
+                        // Log so we know the order
+                        var order = TopUniverse.Values
                             .Where(w => w.Security.HasData)
-                            .OrderByDescending(o => o.MOMP_Daily_10)
+                            .OrderByDescending(o => o.MOMP_Daily_10);
+                        if (order != null)
+                        {
+                            var securities = "";
+                            foreach (var security in order)
+                                securities += $",{security.Security.Symbol.Value}={Decimal.Round(security.MOMP_Daily_10, 4)}";
+                            core.Logger($"Top Universe {securities}");
+                        }
+
+                        // Select Item
+                        var item = order
                             .Take(1)
                             .SingleOrDefault();
 
