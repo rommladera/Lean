@@ -160,17 +160,21 @@ namespace QuantConnect.Algorithm.CSharp
 
         private void LogIndicatorAndHistory()
         {
-            Logger($"MOMP Minute,{Decimal.Round(SPY.MOMP_Minute_01, 4)},{Decimal.Round(SPY.MOMP_Minute_04, 4)},{Decimal.Round(SPY.MOMP_Minute_16, 4)}");
-            Logger($"MOMP Daily,{Decimal.Round(SPY.MOMP_Daily_01, 4)},{Decimal.Round(SPY.MOMP_Daily_10, 4)},{Decimal.Round(SPY.MOMP_Daily_40, 4)}");
-            Logger($"MOMP VWAP,{Decimal.Round(SPY.VWAP_01, 4)},{Decimal.Round(SPY.VWAP_04, 4)},{Decimal.Round(SPY.VWAP_16, 4)}");
-
             var hist = core.History(SPY.Security.Symbol, 5, Resolution.Minute);
             foreach (var bar in hist)
-                Logger($"History Minute,{bar.EndTime},{Decimal.Round(bar.Close, 4)}");
+                Logger($"History Minute,{bar.EndTime},{Decimal.Round(bar.Open, 4)},{Decimal.Round(bar.High, 4)},{Decimal.Round(bar.Low, 4)},{Decimal.Round(bar.Close, 4)},{Decimal.Round(bar.Volume, 4)}");
 
             hist = core.History(SPY.Security.Symbol, 5, Resolution.Daily);
             foreach (var bar in hist)
-                Logger($"History Daily,{bar.EndTime},{Decimal.Round(bar.Close, 4)}");
+                Logger($"History Daily,{bar.EndTime},{Decimal.Round(bar.Open, 4)},{Decimal.Round(bar.High, 4)},{Decimal.Round(bar.Low, 4)},{Decimal.Round(bar.Close, 4)},{Decimal.Round(bar.Volume, 4)}");
+
+            Logger($"SPY,{SPY.Security.LocalTime},{Decimal.Round(SPY.Security.Open, 4)},{Decimal.Round(SPY.Security.High, 4)},{Decimal.Round(SPY.Security.Low, 4)},{Decimal.Round(SPY.Security.Close, 4)},{Decimal.Round(SPY.Security.Volume, 4)}");
+
+            Logger($"MOMP Daily,{Decimal.Round(SPY.MOMP_Daily_01, 4)},{Decimal.Round(SPY.MOMP_Daily_10, 4)},{Decimal.Round(SPY.MOMP_Daily_40, 4)}");
+            Logger($"MOMP Minute,{Decimal.Round(SPY.MOMP_Minute_01, 4)},{Decimal.Round(SPY.MOMP_Minute_04, 4)},{Decimal.Round(SPY.MOMP_Minute_16, 4)}");
+            Logger($"VWAP,{Decimal.Round(SPY.VWAP_01, 4)},{Decimal.Round(SPY.VWAP_04, 4)},{Decimal.Round(SPY.VWAP_16, 4)}");
+
+
         }
 
         public override void OnSecuritiesChanged(SecurityChanges changes)
@@ -255,6 +259,16 @@ namespace QuantConnect.Algorithm.CSharp
 
         private void OnTick()
         {
+            if (core.MarketOpenTime(-30) || core.MarketOpenTime(-29) || core.MarketOpenTime(-28) || core.MarketOpenTime(-27) || core.MarketOpenTime(-26)
+                || core.MarketOpenTime(-25) || core.MarketOpenTime(-24) || core.MarketOpenTime(-23) || core.MarketOpenTime(-22) || core.MarketOpenTime(-21)
+                || core.MarketOpenTime(-20) || core.MarketOpenTime(-19) || core.MarketOpenTime(-18) || core.MarketOpenTime(-17) || core.MarketOpenTime(-16)
+                || core.MarketOpenTime(-15) || core.MarketOpenTime(-14) || core.MarketOpenTime(-13) || core.MarketOpenTime(-12) || core.MarketOpenTime(-11)
+                || core.MarketOpenTime(-10) || core.MarketOpenTime(-9) || core.MarketOpenTime(-8) || core.MarketOpenTime(-7) || core.MarketOpenTime(-6)
+                || core.MarketOpenTime(-5) || core.MarketOpenTime(-4) || core.MarketOpenTime(-3) || core.MarketOpenTime(-2)) // Extended Hours Before Market
+            {
+                LogIndicatorAndHistory();
+            }
+
             if (core.MarketOpenTime(-1)) // Before First trade
             {
                 Logger($"Before Market Open");

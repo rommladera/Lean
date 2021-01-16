@@ -1,5 +1,6 @@
 ﻿TODO:
 
+
 - Update and Indicators seems to be wonky.
 
 *- Record live data, so we can comapre with backtest (every minute)
