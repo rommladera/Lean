@@ -1,5 +1,13 @@
 ﻿TODO:
 
+-Top Universe is different in Live vs  Backtest. Seems like .HasData removed some securities
+	-Remove the .HasData and see the value
+
+
+
+
+*****Historical data seems to be accurate between Live and Backtest...so calculate indicators manually using history
+***Price seems to be more accurate starting one minute after opening.  Imeediately after opening is very inaccurate
 
 - Update and Indicators seems to be wonky.
 

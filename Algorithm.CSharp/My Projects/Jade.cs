@@ -37,11 +37,13 @@ namespace QuantConnect.Algorithm.CSharp
             SetTimeZone(TimeZones.NewYork);
             SetCash(StartingCash);
             // SetStartDate(DateTime.Now.AddDays(-192).Date);
-            SetStartDate(DateTime.Now.AddDays(-38).Date);
+            // SetStartDate(DateTime.Now.AddDays(-38).Date);
             // SetStartDate(DateTime.Now.AddDays(-17).Date);
             // SetEndDate(DateTime.Now.AddDays(-32).Date); // RCL
-            SetEndDate(DateTime.Now.AddDays(-10).Date);
+            // SetEndDate(DateTime.Now.AddDays(-10).Date);
 
+            SetStartDate(2021, 01, 24);
+            SetEndDate(2021, 01, 30);
 
             if (LocalDevMode)
             {
@@ -315,7 +317,7 @@ namespace QuantConnect.Algorithm.CSharp
                     if (quantPerformances != null)
                         foreach (var quantPerformance in quantPerformances)
                             if (quantPerformance != null)
-                                Logger($"Top Performance {quantPerformance.Tag}, Performance {Decimal.Round(quantPerformance.Performance, 4)}, WinRate {Decimal.Round(quantPerformance.WinRate, 4)}", true);
+                                Logger($"Top Performance {quantPerformance.Tag}, Performance {Decimal.Round(quantPerformance.Performance, 4)}, WinRate {Decimal.Round(quantPerformance.WinRate, 4)}");
 
                     var quantWinRates = (Quants != null && Quants.Values.Count > 0)
                         ? Quants.Values
@@ -326,7 +328,7 @@ namespace QuantConnect.Algorithm.CSharp
                     if (quantWinRates != null)
                         foreach (var quantWinRate in quantWinRates)
                             if (quantWinRate != null)
-                                Logger($"Top Winrate {quantWinRate.Tag}, WinRate {Decimal.Round(quantWinRate.WinRate, 4)}, Performance {Decimal.Round(quantWinRate.Performance, 4)}", true);
+                                Logger($"Top Winrate {quantWinRate.Tag}, WinRate {Decimal.Round(quantWinRate.WinRate, 4)}, Performance {Decimal.Round(quantWinRate.Performance, 4)}");
                 }
             }
 
